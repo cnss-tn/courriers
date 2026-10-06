@@ -8,7 +8,7 @@
           <span class="composed-card-icon composed-card-icon--table" aria-hidden="true"></span>
           <div class="w-100">
             <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
-              <h2 class="h5 fw-bold mb-0">سجل المراسلات الواردة</h2>
+              <h2 class="h5 fw-bold mb-0">التصرف في المراسلات</h2>
               <div class="programmes-total text-start">
                 @if (!ctrl.loading()) {
                   {{ ctrl.filtered().length === ctrl.all().length ? `${ctrl.all().length} ${ctrl.all().length > 1 ? 'مراسلات' : 'مراسلة'}` : `${ctrl.filtered().length} / ${ctrl.all().length} مراسلات` }}
@@ -35,7 +35,7 @@
                   <app-dropdown [options]="ctrl.destinataires()" [value]="ctrl.fDestinataire()" placeholder="الكل" [searchable]="false" (valueChange)="ctrl.setFilter({ destinataire: $event })"></app-dropdown>
                 </div>
                 <div class="results-filter-compact results-filter-compact--type">
-                  <label class="form-label mb-1">رد مستلم؟</label>
+                  <label class="form-label mb-1">الإجابة الواردة</label>
                   <app-dropdown [options]="reponseOptions" [value]="ctrl.fReponse()" placeholder="الكل" [searchable]="false" (valueChange)="ctrl.setFilter({ reponse: $any($event) })"></app-dropdown>
                 </div>
                 <div class="results-filter-compact results-filter-compact--year">
@@ -50,7 +50,7 @@
             <app-export-buttons
               [headers]="ctrl.exportHeaders()"
               [rows]="ctrl.exportRows()"
-              title="سجل المراسلات الواردة"
+              title="التصرف في المراسلات"
               filenameBase="courriers"
             ></app-export-buttons>
           </div>

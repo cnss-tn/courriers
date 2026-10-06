@@ -1,7 +1,7 @@
 .custom-select-wrap { position: relative; }
 .custom-select-actions { display: flex; gap: 0.4rem; align-items: center; margin-top: 0.35rem; }
 .btn-custom-activity-btn {
-  border: 1px dashed #048f40; background: rgba(4, 143, 64, 0.06); color: #048f40;
+  border: 1px dashed #0e9db5; background: rgba(14, 157, 181, 0.06); color: #0e9db5;
   border-radius: 10px; font-size: 0.75rem; font-weight: 700; padding: 0.2rem 0.7rem; cursor: pointer;
 }
 .btn-custom-activity-btn:disabled { opacity: 0.5; cursor: not-allowed; }

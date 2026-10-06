@@ -1,0 +1,21 @@
+<div class="di-wrap">
+  <input
+    type="text"
+    class="form-control form-control-sm di-input"
+    [placeholder]="placeholder"
+    [disabled]="disabled"
+    autocomplete="off"
+    readonly
+    ngbDatepicker
+    #d="ngbDatepicker"
+    container="body"
+    placement="bottom"
+    autoClose="true"
+    [ngModel]="struct"
+    (ngModelChange)="onPick($event)"
+    (click)="d.toggle()"
+  />
+  @if (clearable && value && !disabled) {
+    <button type="button" class="di-clear" (click)="clear()" title="مسح التاريخ">✕</button>
+  }
+</div>

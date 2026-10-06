@@ -101,7 +101,7 @@ export function validateCourrierDraft(d: CourrierDraft): string[] {
     errors.push('قيمة الرد المستلم غير صالحة');
   }
   if (d.reponseRecue === 'نعم' && !String(d.dateReponseRecue || '').trim()) {
-    errors.push('يرجى إدخال تاريخ الرد المستلم (الإجابة نعم)');
+    errors.push('يرجى إدخال تاريخ الإجابة الواردة (الإجابة نعم)');
   }
   return errors;
 }

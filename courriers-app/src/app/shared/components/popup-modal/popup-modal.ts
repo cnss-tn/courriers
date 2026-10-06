@@ -17,4 +17,10 @@ export class PopupModalComponent {
   close(): void {
     this.closed.emit();
   }
+
+  /** Ferme uniquement au clic direct sur le fond (laisse les clics internes
+      se propager au document : les dropdowns se ferment au clic extérieur). */
+  onBackdropClick(e: MouseEvent): void {
+    if (e.target === e.currentTarget) this.close();
+  }
 }

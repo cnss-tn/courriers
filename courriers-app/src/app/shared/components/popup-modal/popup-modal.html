@@ -1,11 +1,10 @@
-<div class="app-modal-backdrop" (click)="close()">
+<div class="app-modal-backdrop" (click)="onBackdropClick($event)">
   <div
     class="app-modal-dialog"
     [class.app-modal-dialog--wide]="wide"
     [class.app-modal-dialog--medium]="medium"
     role="dialog"
     aria-modal="true"
-    (click)="$event.stopPropagation()"
     dir="rtl"
   >
     <div class="app-modal-content">
@@ -13,7 +12,7 @@
         <h5 class="modal-title fw-bold">{{ title }}</h5>
         <button type="button" class="btn-close" (click)="close()" aria-label="إغلاق"></button>
       </div>
-      <div class="modal-body pt-0 px-4 pb-4">
+      <div class="modal-body px-4 pb-4" style="padding-top: 0.9rem;">
         <ng-content></ng-content>
       </div>
     </div>

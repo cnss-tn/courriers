@@ -9,14 +9,16 @@ import {
   validateCourrierDraft,
 } from '../../../models/courrier.model';
 import { CustomSelectComponent } from '../../../shared/components/custom-select/custom-select';
+import { DateInputComponent } from '../../../shared/components/date-input/date-input';
 import { DropdownComponent } from '../../../shared/components/dropdown/dropdown';
+import { AutogrowDirective } from '../../../shared/directives/autogrow.directive';
 
 // VIEW — formulaire مراسلة : affiche, valide (règles du MODEL), émet.
 // Ne persiste jamais rien : c'est le contrôleur qui sauvegarde.
 @Component({
   selector: 'app-courrier-form',
   standalone: true,
-  imports: [ReactiveFormsModule, CustomSelectComponent, DropdownComponent],
+  imports: [ReactiveFormsModule, CustomSelectComponent, DropdownComponent, DateInputComponent, AutogrowDirective],
   templateUrl: './courrier-form.view.html',
   styleUrl: './courrier-form.view.css',
 })
@@ -32,6 +34,8 @@ export class CourrierFormView implements OnInit {
   form!: FormGroup;
   clientError = signal('');
   saving = signal(false);
+
+  readonly reponseOptions = ['لا', 'نعم'];
 
   get isEdit(): boolean {
     return !!this.courrier?.id;

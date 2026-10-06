@@ -74,7 +74,7 @@ le modèle valide.** Détails pédagogiques : voir `docs/MVC.md`.
 - **Séquence** attribuée automatiquement à la création (jamais réutilisée après suppression).
 - **Destinataire** = contrôleurs (users) + **« Archive » toujours en dernier**.
 - **Source / نوع الطرف / إحالة إلى** : choisir ou **« + جديد »** (persisté en `referentiels`).
-- Si **« تم تلقي رد؟ = نعم »** alors date du رد المستلم requise.
+- Si **« الإجابة الواردة = نعم »** alors تاريخ الإجابة الواردة requis.
 
 ## 8) Déploiement GitHub Pages
 

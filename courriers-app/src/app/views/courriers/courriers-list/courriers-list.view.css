@@ -10,9 +10,9 @@
   position: fixed; top: 1.6rem; left: 50%; transform: translateX(-50%); z-index: 100;
   font-size: 1.15rem; padding: 0.7rem 2.6rem;
 }
-.badge-dest { background: rgba(4, 143, 64, 0.14); color: #0f2918; border: 1px solid rgba(4,143,64,0.22); }
+.badge-dest { background: rgba(14, 157, 181, 0.14); color: #0b2e38; border: 1px solid rgba(14,157,181,0.22); }
 .badge-archive { background: #f1f3f5; color: #6c757d; border: 1px solid #dee2e6; }
-.badge-yes { background: rgba(4, 143, 64, 0.16); color: #0c5c2b; border: 1px solid rgba(4,143,64,0.3); }
+.badge-yes { background: rgba(14, 157, 181, 0.16); color: #0b5a6e; border: 1px solid rgba(14,157,181,0.3); }
 .badge-no { background: rgba(220, 53, 69, 0.1); color: #842029; border: 1px solid rgba(220,53,69,0.25); }
 .row-actions { display: flex; gap: 0.3rem; justify-content: center; }
 .user-action-btn { border-radius: 10px; font-size: 0.72rem; font-weight: 700; padding: 0.2rem 0.6rem; cursor: pointer; border: 1px solid; background: #fff; white-space: nowrap; }

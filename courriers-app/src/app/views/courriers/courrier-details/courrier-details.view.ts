@@ -22,11 +22,11 @@ export class CourrierDetailsView {
       ['الموجَّه إليه', c.destinataire],
       ['تاريخ الاستلام', c.dateReception],
       ['إحالة إلى', c.ihalaIla || '—'],
-      ['تم تلقي رد؟', c.reponseRecue],
-      ['تاريخ الرد المستلم', c.dateReponseRecue || '—'],
+      ['الإجابة الواردة', c.reponseRecue],
+      ['تاريخ الإجابة الواردة', c.dateReponseRecue || '—'],
       ['الرد النهائي على المراسلة', c.reponseFinale || '—'],
       ['تاريخ الرد النهائي', c.dateReponseFinale || '—'],
-      ['الجهة الموجه لها الرد النهائي', c.jihaReponse || '—'],
+      ['جهة الرد النهائي', c.jihaReponse || '—'],
     ];
   }
 }
