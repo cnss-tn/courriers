@@ -1,0 +1,46 @@
+<app-background></app-background>
+<main class="container login-shell" dir="rtl">
+  <div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+      <div class="card login-card">
+        <div class="login-card-accent" aria-hidden="true"></div>
+        <div class="card-body p-4 p-lg-4">
+          <div class="text-center mb-4">
+            <img src="images/cnss_logo.svg" width="52" height="52" alt="" class="login-logo mb-4" />
+            <div>
+              <h1 class="h6 fw-semibold mb-1">إدارة المراسلات — مديرية المراقبة</h1>
+              <div class="small text-muted">مكتب الضبط / السكرتارية</div>
+            </div>
+          </div>
+
+          @if (error()) {
+            <div class="alert alert-danger" role="alert">{{ error() }}</div>
+          }
+
+          <form (ngSubmit)="submit()" novalidate>
+            <div class="mx-auto" style="max-width: 15rem">
+              <div class="mb-3">
+                <label for="login-matricule" class="form-label">رقم التسجيل</label>
+                <input
+                  type="text" class="form-control" id="login-matricule" name="matricule"
+                  [(ngModel)]="matricule" autocomplete="username" inputmode="numeric" required />
+              </div>
+              <div class="mb-3">
+                <label for="login-pw" class="form-label">كلمة المرور</label>
+                <input
+                  type="password" class="form-control" id="login-pw" name="pw"
+                  [(ngModel)]="pw" autocomplete="current-password" required />
+              </div>
+              <button type="submit" class="btn btn-primary btn-sm mt-4 mb-3 d-block mx-auto" style="min-width: 10rem" [disabled]="loading()">
+                <span>تسجيل الدخول</span>
+                @if (loading()) {
+                  <span class="spinner-border spinner-border-sm ms-2" role="status" aria-hidden="true"></span>
+                }
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>

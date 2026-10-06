@@ -1,0 +1,145 @@
+<button type="button" (click)="openCreate()" class="btn btn-primary btn-sm users-add-btn add-btn-top">+ إضافة مراسلة</button>
+<div class="row g-4 composed-bento">
+  <div class="col-12 mt-0">
+    <div class="card card-custom card-composed courriers-card h-100">
+      <div class="card-composed-accent card-composed-accent--secondary" aria-hidden="true"></div>
+      <div class="card-composed-body p-4 p-lg-4 d-flex flex-column">
+        <div class="composed-card-head mb-1">
+          <span class="composed-card-icon composed-card-icon--table" aria-hidden="true"></span>
+          <div class="w-100">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+              <h2 class="h5 fw-bold mb-0">سجل المراسلات الواردة</h2>
+              <div class="programmes-total text-start">
+                @if (!ctrl.loading()) {
+                  {{ ctrl.filtered().length === ctrl.all().length ? `${ctrl.all().length} ${ctrl.all().length > 1 ? 'مراسلات' : 'مراسلة'}` : `${ctrl.filtered().length} / ${ctrl.all().length} مراسلات` }}
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <section class="results-filters mt-2" aria-label="Filtres">
+          <div class="results-filters-shell">
+            <div class="results-filters-section results-filters-section--primary">
+              <div class="results-filters-row">
+                <div class="results-filter-compact results-filter-compact--search">
+                  <label class="form-label mb-1">بحث (موضوع / هوية / رقم)</label>
+                  <input type="text" class="form-control form-control-sm" [ngModel]="ctrl.fSearch()" (ngModelChange)="ctrl.setFilter({ search: $event })" placeholder="..." />
+                </div>
+                <div class="results-filter-compact">
+                  <label class="form-label mb-1">المصدر</label>
+                  <app-dropdown [options]="ctrl.sources()" [value]="ctrl.fSource()" placeholder="الكل" [searchable]="false" (valueChange)="ctrl.setFilter({ source: $event })"></app-dropdown>
+                </div>
+                <div class="results-filter-compact">
+                  <label class="form-label mb-1">الموجَّه إليه</label>
+                  <app-dropdown [options]="ctrl.destinataires()" [value]="ctrl.fDestinataire()" placeholder="الكل" [searchable]="false" (valueChange)="ctrl.setFilter({ destinataire: $event })"></app-dropdown>
+                </div>
+                <div class="results-filter-compact results-filter-compact--type">
+                  <label class="form-label mb-1">رد مستلم؟</label>
+                  <app-dropdown [options]="reponseOptions" [value]="ctrl.fReponse()" placeholder="الكل" [searchable]="false" (valueChange)="ctrl.setFilter({ reponse: $any($event) })"></app-dropdown>
+                </div>
+                <div class="results-filter-compact results-filter-compact--year">
+                  <label class="form-label mb-1">السنة</label>
+                  <app-dropdown [options]="ctrl.years()" [value]="ctrl.fYear()" placeholder="الكل" [searchable]="false" (valueChange)="ctrl.setFilter({ year: $event })"></app-dropdown>
+                </div>
+                <div class="results-filter-actions">
+                  <button type="button" class="btn btn-outline-secondary btn-sm" (click)="ctrl.resetFilters()">إلغاء</button>
+                </div>
+              </div>
+            </div>
+            <app-export-buttons
+              [headers]="ctrl.exportHeaders()"
+              [rows]="ctrl.exportRows()"
+              title="سجل المراسلات الواردة"
+              filenameBase="courriers"
+            ></app-export-buttons>
+          </div>
+        </section>
+
+        <div class="table-responsive composed-table-wrap flex-grow-1 courriers-scroll">
+          @if (ctrl.loading()) {
+            <app-loader></app-loader>
+          } @else if (ctrl.error()) {
+            <div class="text-center text-danger fw-semibold py-4">{{ ctrl.error() }}</div>
+          } @else {
+            <table class="table table-hover align-middle composed-table mb-0 text-center" dir="rtl">
+              <thead>
+                <tr>
+                  @for (h of ctrl.exportHeaders(); track h) {
+                    <th>{{ h }}</th>
+                  }
+                  <th>إجراءات</th>
+                </tr>
+              </thead>
+              <tbody>
+                @if (!ctrl.slice().length) {
+                  <tr><td colspan="15" class="text-center text-muted">قائمة فارغة</td></tr>
+                }
+                @for (c of ctrl.slice(); track c.id) {
+                  <tr class="courrier-row" (click)="details.set(c)" tabindex="0">
+                    <td class="fw-bold" dir="ltr">#{{ c.seq }}</td>
+                    <td dir="ltr" class="text-nowrap"><small>{{ c.dateArrivee }}</small></td>
+                    <td>{{ c.source }}</td>
+                    <td>{{ c.typePartie }}</td>
+                    <td class="text-truncate-cell">{{ c.identitePartie }}</td>
+                    <td class="text-truncate-cell">{{ c.objet }}</td>
+                    <td>
+                      <span class="badge" [class.badge-archive]="c.destinataire === 'Archive'" [class.badge-dest]="c.destinataire !== 'Archive'">{{ c.destinataire }}</span>
+                    </td>
+                    <td dir="ltr" class="text-nowrap"><small>{{ c.dateReception }}</small></td>
+                    <td>{{ c.ihalaIla || '—' }}</td>
+                    <td>
+                      <span class="badge" [class.badge-yes]="c.reponseRecue === 'نعم'" [class.badge-no]="c.reponseRecue !== 'نعم'">{{ c.reponseRecue }}</span>
+                    </td>
+                    <td dir="ltr" class="text-nowrap"><small>{{ c.dateReponseRecue || '—' }}</small></td>
+                    <td class="text-truncate-cell">{{ c.reponseFinale || '—' }}</td>
+                    <td dir="ltr" class="text-nowrap"><small>{{ c.dateReponseFinale || '—' }}</small></td>
+                    <td>{{ c.jihaReponse || '—' }}</td>
+                    <td (click)="$event.stopPropagation()">
+                      <div class="row-actions">
+                        <button type="button" class="user-action-btn user-action-view" (click)="details.set(c)">عرض</button>
+                        <button type="button" class="user-action-btn user-action-edit" (click)="openEdit(c)">تعديل</button>
+                        <button type="button" class="user-action-btn user-action-delete" (click)="remove(c)">حذف</button>
+                      </div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          }
+        </div>
+
+        <app-pagination
+          [page]="ctrl.page()"
+          [totalPages]="ctrl.totalPages()"
+          [total]="ctrl.all().length"
+          [filtered]="ctrl.filtered().length"
+          unit="مراسلة"
+          unitPlural="مراسلات"
+          (pageChange)="ctrl.goTo($event)"
+        ></app-pagination>
+      </div>
+    </div>
+  </div>
+</div>
+
+@if (showForm()) {
+  <app-popup [title]="editing() ? 'تعديل المراسلة رقم ' + editing()!.seq : 'مراسلة جديدة'" [medium]="true" (closed)="showForm.set(false)">
+    <app-courrier-form
+      [courrier]="editing()"
+      [serverError]="saveError()"
+      (submitted)="onSubmitted($event)"
+      (cancelled)="showForm.set(false)"
+    ></app-courrier-form>
+  </app-popup>
+}
+
+@if (details()) {
+  <app-popup [title]="'بطاقة المراسلة رقم ' + details()!.seq" (closed)="details.set(null)">
+    <app-courrier-details [courrier]="details()!"></app-courrier-details>
+    <div class="d-flex gap-2 mt-3">
+      <button type="button" class="btn btn-outline-secondary flex-grow-1" (click)="details.set(null)">إغلاق</button>
+      <button type="button" class="btn btn-primary flex-grow-1" (click)="openEdit(details()!); details.set(null)">تعديل</button>
+    </div>
+  </app-popup>
+}

@@ -1,0 +1,99 @@
+rules_version = '2';
+// Durcies mais SANS Firebase Auth (comme campagnes : auth maison matricule+PW,
+// contrôle d'accès au niveau applicatif via la collection `sessions`).
+// Ces règles ne distinguent pas les utilisateurs : elles valident la FORME
+// des données (champs, types, valeurs) et protègent le compteur de séquence.
+// Le banner "règles publiques" restera visible en console : c'est attendu.
+// Mitigations complémentaires (manuelles, voir README) :
+//   1. Restreindre la clé Web API aux domaines de l'app (GCP > APIs & Services > Credentials).
+//   2. Prod Reeseau : migrer vers Firebase Auth (custom tokens) pour verrouiller par utilisateur.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isNonEmptyString(x) {
+      return x is string && x.size() > 0 && x.size() <= 2000;
+    }
+
+    // ---------- courriers ----------
+    match /courriers/{id} {
+      allow read: if true;
+      allow create: if isValidCourrier(request.resource.data);
+      // seq et createdAt immuables après création
+      allow update: if isValidCourrier(request.resource.data)
+        && request.resource.data.seq == resource.data.seq
+        && request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if true;
+    }
+
+    function isValidCourrier(d) {
+      return d.seq is int && d.seq >= 1
+        && isNonEmptyString(d.dateArrivee)
+        && isNonEmptyString(d.source)
+        && isNonEmptyString(d.typePartie)
+        && isNonEmptyString(d.identitePartie)
+        && isNonEmptyString(d.objet)
+        && isNonEmptyString(d.destinataire)
+        && isNonEmptyString(d.dateReception)
+        && d.ihalaIla is string
+        && (d.reponseRecue == 'نعم' || d.reponseRecue == 'لا')
+        && d.dateReponseRecue is string
+        && d.reponseFinale is string
+        && d.dateReponseFinale is string
+        && d.jihaReponse is string;
+    }
+
+    // ---------- compteur séquence 1..n : +1 strict, jamais de suppression ----------
+    match /counters/{id} {
+      allow read: if true;
+      allow create: if request.resource.data.lastSeq == 1;
+      allow update: if request.resource.data.lastSeq is int
+        && request.resource.data.lastSeq == resource.data.lastSeq + 1;
+      allow delete: if false;
+    }
+
+    // ---------- users (lecture nécessaire au login) ----------
+    match /users/{id} {
+      allow read: if true;
+      allow create, update: if isValidUser(request.resource.data);
+      allow delete: if true;
+    }
+
+    function isValidUser(d) {
+      return d.Matricule is number
+        && isNonEmptyString(d.FR_Name)
+        && isNonEmptyString(d.AR_Name)
+        && isNonEmptyString(d.Grade)
+        && (d.Code_BR is string || d.Code_BR is number)
+        && isNonEmptyString(d.Pw)
+        && (d.user_type == 'admin' || d.user_type == 'normal')
+        && d.pw_changed is number
+        && d.email is string;
+    }
+
+    // ---------- sessions (jetons aléatoires créés au login) ----------
+    match /sessions/{token} {
+      allow read: if true;
+      allow create: if request.resource.data.matricule is string
+        && request.resource.data.createdAt is number;
+      allow update: if false;
+      allow delete: if true;
+    }
+
+    // ---------- référentiels (listes extensibles) ----------
+    match /referentiels/{id} {
+      allow read: if true;
+      allow create: if (request.resource.data.type == 'source'
+          || request.resource.data.type == 'partie_type'
+          || request.resource.data.type == 'ihala')
+        && request.resource.data.value is string
+        && request.resource.data.value.size() > 0
+        && request.resource.data.value.size() <= 200;
+      allow update, delete: if false;
+    }
+
+    // ---------- tout le reste : refusé ----------
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

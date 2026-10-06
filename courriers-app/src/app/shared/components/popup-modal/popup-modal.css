@@ -1,0 +1,17 @@
+.app-modal-backdrop {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(12, 53, 32, 0.45);
+  backdrop-filter: blur(3px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 1rem;
+}
+.app-modal-dialog { width: 100%; max-width: 560px; max-height: 95vh; display: flex; }
+.app-modal-dialog--medium { max-width: 680px; }
+.app-modal-dialog--wide { max-width: 900px; }
+.app-modal-content {
+  width: 100%; overflow-y: auto;
+  border-radius: 18px; background: #fff;
+  border: 1px solid #d9e8dd;
+  box-shadow: 0 28px 64px -20px rgba(12, 53, 32, 0.35);
+}
+.app-modal-content .btn-close { margin-right: auto; margin-left: 0; }

@@ -1,0 +1,13 @@
+@if (total > 0) {
+  <div class="programmes-pagination">
+    <div class="programmes-pagination-row">
+      <button type="button" class="btn btn-outline-secondary btn-sm programmes-page-btn" (click)="pageChange.emit(page - 1)" [disabled]="page <= 1">الصفحة السابقة</button>
+      <div class="programmes-pages">
+        @for (p of pages(); track p) {
+          <button type="button" class="programmes-page-number" [class.is-active]="p === page" (click)="pageChange.emit(p)">{{ p }}</button>
+        }
+      </div>
+      <button type="button" class="btn btn-outline-secondary btn-sm programmes-page-btn" (click)="pageChange.emit(page + 1)" [disabled]="page >= totalPages">الصفحة التالية</button>
+    </div>
+  </div>
+}

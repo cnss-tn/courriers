@@ -1,0 +1,22 @@
+.courriers-scroll { overflow-x: auto; min-height: 200px; }
+.courriers-scroll table { min-width: 1400px; font-size: 0.75rem; }
+.courriers-scroll thead th { padding: 0.5rem 0.35rem; white-space: nowrap; }
+.courriers-scroll tbody td { padding: 0.32rem 0.35rem; }
+.courriers-scroll .badge { font-size: 0.66rem; white-space: nowrap; }
+.courrier-row { cursor: pointer; }
+.text-truncate-cell { max-width: 170px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.courriers-card { max-width: 100%; margin-inline: auto; }
+.add-btn-top {
+  position: fixed; top: 1.6rem; left: 50%; transform: translateX(-50%); z-index: 100;
+  font-size: 1.15rem; padding: 0.7rem 2.6rem;
+}
+.badge-dest { background: rgba(4, 143, 64, 0.14); color: #0f2918; border: 1px solid rgba(4,143,64,0.22); }
+.badge-archive { background: #f1f3f5; color: #6c757d; border: 1px solid #dee2e6; }
+.badge-yes { background: rgba(4, 143, 64, 0.16); color: #0c5c2b; border: 1px solid rgba(4,143,64,0.3); }
+.badge-no { background: rgba(220, 53, 69, 0.1); color: #842029; border: 1px solid rgba(220,53,69,0.25); }
+.row-actions { display: flex; gap: 0.3rem; justify-content: center; }
+.user-action-btn { border-radius: 10px; font-size: 0.72rem; font-weight: 700; padding: 0.2rem 0.6rem; cursor: pointer; border: 1px solid; background: #fff; white-space: nowrap; }
+.user-action-view { color: #0d6efd; border-color: rgba(13,110,253,0.35); }
+.user-action-edit { color: #b8860b; border-color: rgba(184,134,11,0.35); }
+.user-action-delete { color: #dc3545; border-color: rgba(220,53,69,0.35); }
+.user-action-btn:hover { filter: brightness(0.95); }

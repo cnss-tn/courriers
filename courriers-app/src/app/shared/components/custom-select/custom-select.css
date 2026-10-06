@@ -1,0 +1,16 @@
+.custom-select-wrap { position: relative; }
+.custom-select-actions { display: flex; gap: 0.4rem; align-items: center; margin-top: 0.35rem; }
+.btn-custom-activity-btn {
+  border: 1px dashed #048f40; background: rgba(4, 143, 64, 0.06); color: #048f40;
+  border-radius: 10px; font-size: 0.75rem; font-weight: 700; padding: 0.2rem 0.7rem; cursor: pointer;
+}
+.btn-custom-activity-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.sector-clear-badge {
+  border: 1px solid #dc3545; background: #fff; color: #dc3545; border-radius: 50%;
+  width: 1.6rem; height: 1.6rem; font-size: 0.7rem; cursor: pointer; line-height: 1;
+}
+.custom-add-wrap { display: flex; gap: 0.4rem; align-items: center; }
+.btn-back-to-list {
+  border: 1px solid #6c757d; background: #fff; color: #6c757d; border-radius: 50%;
+  width: 1.8rem; height: 1.8rem; cursor: pointer; flex-shrink: 0;
+}

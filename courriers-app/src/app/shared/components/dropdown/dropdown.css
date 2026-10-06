@@ -1,0 +1,79 @@
+/* Clone visuel des dropdowns Choices.js de l'app campagnes :
+   boîte 32px / radius 10px / bordure verte pâle, panneau radius 14px,
+   options 0.55rem 0.9rem en 0.925rem, survol vert clair. */
+.dd { position: relative; margin-bottom: 0; }
+.dd-toggle {
+  width: 100%;
+  min-height: 32px;
+  display: flex; align-items: center; gap: 0.55rem;
+  padding: 0.22rem 0.55rem 0.45rem;
+  font-size: 0.78rem; font-weight: 400; color: var(--cp-ink);
+  background-color: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(12, 107, 47, 0.14);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+.dd-toggle:hover:not(:disabled) { border-color: var(--cp-accent); }
+.dd-toggle:disabled { opacity: 0.65; cursor: not-allowed; }
+.dd-open .dd-toggle {
+  border-color: var(--cp-accent);
+  box-shadow: 0 0 0 3px var(--cp-focus-ring);
+  background-color: #fff;
+}
+.dd-toggle-text {
+  flex: 1 1 auto;
+  text-align: start;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.dd-placeholder { color: var(--cp-muted); }
+/* Flèche triangle comme Choices (côté droit physique, comme campagnes en RTL) */
+.dd-chevron {
+  flex-shrink: 0;
+  width: 0; height: 0;
+  border-style: solid;
+  border-width: 5px 5px 0 5px;
+  border-color: var(--cp-muted) transparent transparent transparent;
+  transition: transform 0.15s ease;
+}
+.dd-open .dd-chevron { transform: rotate(180deg); }
+.dd-panel {
+  position: absolute; top: calc(100% + 6px); inset-inline: 0; z-index: 200;
+  background: #fff;
+  border: 1px solid var(--cp-border-strong);
+  border-radius: 14px;
+  box-shadow: var(--cp-shadow), 0 16px 40px -20px rgba(12, 53, 32, 0.22);
+  overflow: hidden;
+}
+.dd-search { padding: 0.35rem 0.9rem; border-bottom: 1px solid var(--cp-border); }
+.dd-search input {
+  width: 100%;
+  border: none; outline: none; background: transparent;
+  font-size: 0.8rem; color: var(--cp-ink);
+  padding: 0.2rem 0;
+}
+.dd-search input::placeholder { color: var(--cp-muted); opacity: 0.8; }
+.dd-list { max-height: 12rem; overflow-y: auto; }
+.dd-list::-webkit-scrollbar { width: 8px; }
+.dd-list::-webkit-scrollbar-track { background: transparent; }
+.dd-list::-webkit-scrollbar-thumb { background: rgba(4, 143, 64, 0.3); border-radius: 8px; }
+.dd-item {
+  padding: 0.55rem 0.9rem;
+  font-size: 0.925rem; font-weight: 400; color: var(--cp-ink);
+  cursor: pointer;
+  white-space: normal; overflow-wrap: break-word;
+}
+.dd-item + .dd-item { border-top: 1px solid rgba(12, 53, 32, 0.05); }
+.dd-item:hover { background: rgba(4, 143, 64, 0.1); }
+.dd-selected { background: rgba(4, 143, 64, 0.1); }
+.dd-empty { color: var(--cp-muted); }
+.dd-special {
+  font-weight: 800;
+  background: linear-gradient(135deg, rgba(4, 143, 64, 0.1), rgba(165, 202, 31, 0.14));
+  border-top: 1px dashed rgba(4, 143, 64, 0.35) !important;
+  margin-top: 0.25rem;
+}
+.dd-no-results {
+  padding: 0.6rem; text-align: center;
+  font-size: 0.8rem; color: var(--cp-muted);
+}
