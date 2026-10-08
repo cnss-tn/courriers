@@ -65,9 +65,15 @@ app-root { display: flex; flex-direction: column; min-height: 100vh; }
 .page-logout:hover { opacity: 1; }
 .page-logout img { border-radius: 50%; }
 .page-logout img:hover { background-color: #6c757d; }
+.page-user {
+  position: fixed; top: 1.05rem; left: calc(1rem + 2.2rem + 0.5rem); z-index: 100;
+  font-family: 'Tajawal', 'Segoe UI', sans-serif;
+  font-weight: 600; font-size: 0.85rem; color: var(--cp-accent);
+  pointer-events: none;
+}
 
 /* Contenu */
-.composed-main { position: relative; max-width: 100%; padding-top: 1.5rem; padding-bottom: 3.5rem; padding-inline: 1rem; margin-top: 8em; }
+.composed-main { position: relative; max-width: 100%; padding-top: 1.5rem; padding-bottom: 3.5rem; padding-inline: 1rem; margin-top: 6em; }
 .row.composed-bento { --bs-gutter-y: 0; }
 
 /* Cartes */
@@ -109,8 +115,27 @@ app-root { display: flex; flex-direction: column; min-height: 100vh; }
 .results-filters-row { display: flex; gap: 0.8rem; column-gap: 1rem; flex-wrap: wrap; align-items: flex-end; }
 .results-filter-actions { display: flex; align-items: flex-end; }
 .results-filters .form-label { font-size: 0.64rem; font-weight: 700; color: var(--cp-muted); }
-.results-filter-compact { max-width: 250px; min-width: 150px; flex: 1 1 150px; }
-.results-filter-compact--year { flex: 0 0 150px; min-width: 140px; max-width: 160px; }
+.results-filter-compact { max-width: 280px; min-width: 180px; flex: 1 1 180px; }
+.results-filter-compact--search { max-width: 200px; min-width: 140px; flex: 1 1 150px; }
+/* Largeur pilotée par [style.width] = plus longue option (voir CourriersListView.filterWidth) */
+.results-filter-autofit { flex: 0 0 auto; min-width: 0; max-width: none; }
+/* Options des dropdowns dans les filtres : texte réduit (spécificité renforcée vs styles composant) */
+.results-filters-row .results-filter-compact .dd-item { font-size: 0.72rem; padding: 0.35rem 0.6rem; }
+/* Bouton fermé des dropdowns dans les filtres : texte réduit */
+.results-filters-row .results-filter-compact .dd-toggle { font-size: 0.66rem; min-height: 28px; }
+.results-filters-row .results-filter-compact .dd-toggle-text,
+.results-filters-row .results-filter-compact .dd-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* Panneau des filtres : s'élargit au contenu (options longues entières, sans coupe) */
+.results-filters-row .results-filter-compact .dd-panel { width: max-content; min-width: 100%; max-width: 26rem; }
+.results-filters-row .results-filter-compact .dd-panel .dd-text {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+}
 .results-export-toolbar { display: flex; justify-content: flex-end; gap: 0.4rem; margin-inline-start: 0; }
 .results-export-toolbar .btn { height: 32px; display: inline-flex; align-items: center; }
 
@@ -126,7 +151,26 @@ app-root { display: flex; flex-direction: column; min-height: 100vh; }
 /* Formulaires popup */
 .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
 .form-label { font-weight: 600; font-size: 0.85rem; color: var(--cp-muted); }
+.form-label .req { color: var(--danger); font-weight: 800; }
 .results-filters .form-label { font-weight: 700; }
+
+/* Actions de popup : petits boutons centrés comme le formulaire */
+.popup-actions { display: flex; gap: 0.5rem; justify-content: center; margin-top: 0.75rem; }
+.popup-actions .btn { min-width: 9rem; border-radius: 12px; }
+/* Contenu du popup détail : mêmes marges latérales que le formulaire */
+.details-wrap { padding: 0.6rem 0.9rem; }
+
+/* Message d'alerte unique (login, main, formulaire) : rouge vif, gras, centré, sans fond ni bordure */
+.app-alert {
+  background: transparent;
+  border: none;
+  color: #ff0000;
+  font-weight: 800;
+  text-align: center;
+  font-size: 1rem;
+  padding: 0.2rem;
+  margin-bottom: 0.5rem;
+}
 .form-control, .form-select { border-radius: 12px; border-color: var(--cp-border-strong); background-color: rgba(255,255,255,0.9); }
 .form-control:focus, .form-select:focus { border-color: var(--cp-accent); box-shadow: 0 0 0 3px var(--cp-focus-ring); }
 .btn-primary { border: none; border-radius: 12px; font-weight: 700; background: linear-gradient(135deg, var(--cp-accent), var(--cp-accent-mid), var(--cp-accent-2)); box-shadow: 0 4px 14px rgba(14,157,181,0.38); }
@@ -140,20 +184,36 @@ app-root { display: flex; flex-direction: column; min-height: 100vh; }
 .user-action-delete { color: #dc3545; border-color: rgba(220,53,69,0.35); }
 .user-action-btn:hover { filter: brightness(0.95); }
 
-/* Calendrier ng-bootstrap : RTL + accent turquoise (comme campagnes) */
-ngb-datepicker.dropdown-menu {
-  direction: rtl;
-  font-family: inherit;
-  border-radius: 14px;
-  border: 1px solid var(--cp-border-strong);
-  box-shadow: var(--cp-shadow), 0 16px 40px -20px rgba(11, 53, 60, 0.22);
-  z-index: 999999 !important;
+/* ✕ unique (rond rouge) à gauche d'un select / champ « + جديد » :
+   désélectionne, ou efface le texte + referme le champ. */
+.single-clear-x {
+  border: 1px solid #dc3545; background: #fff; color: #dc3545; border-radius: 50%;
+  width: 1.4rem; height: 1.4rem; font-size: 0.65rem; font-weight: 800;
+  cursor: pointer; flex-shrink: 0; line-height: 1; padding: 0;
 }
-.ngb-dp-weekday { color: var(--cp-accent) !important; font-style: normal !important; font-size: 0.7rem; }
-.ngb-dp-day, .ngb-dp-day * { font-style: normal !important; }
-.ngb-dp-day { width: 1.9rem; height: 1.9rem; font-size: 0.75rem; }
-.ngb-dp-month-name { font-size: 0.8rem; }
-.ngb-dp-navigation select.form-select { font-size: 0.75rem; padding: 0.15rem 0.4rem; }
+.single-clear-x:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Calendrier Material : accent turquoise + calendrier compact (comme campagnes) */
+.mat-datepicker-popup, .mat-datepicker-content { direction: rtl; font-family: inherit; }
+.mat-calendar-body-selected { background-color: var(--cp-accent) !important; color: #fff; }
+.mat-calendar-body-today:not(.mat-calendar-body-selected) { border-color: var(--cp-accent) !important; }
+.mat-calendar-table-header th { font-size: 0.7rem; font-weight: 400; color: var(--cp-muted); }
+.mat-calendar-body-cell-content { font-size: 0.78rem; }
+.mat-calendar-period-button { font-size: 0.85rem; font-weight: 700; }
+.mat-calendar-arrow { fill: var(--cp-muted); }
+/* Calendrier RTL : état initial des boutons mois précédent/suivant (marge pour le ✕ conservée) */
+.mat-calendar-controls { padding-left: 30px; }
+/* Bouton ✕ blanc sur cercle rouge en haut à gauche du calendrier */
+.mat-date-x {
+  position: absolute; top: 8px; left: 8px; z-index: 10;
+  width: 1.4rem; height: 1.4rem;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: #dc3545; color: #fff; border: none; border-radius: 50%;
+  font-size: 0.65rem; font-weight: 800; cursor: pointer; line-height: 1;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  padding: 0;
+}
+.mat-date-x:hover { background: #b02a37; }
 .ngb-dp-day .bg-primary { background-color: var(--cp-accent) !important; }
 .ngb-dp-day.ngb-dp-today .btn-light { border: 1px solid var(--cp-accent); }
 

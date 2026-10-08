@@ -10,14 +10,22 @@
     <span class="dd-toggle-text" [class.dd-placeholder]="!value">{{ value || placeholder }}</span>
   </button>
   @if (open()) {
-    <div class="dd-panel">
-      @if (searchable) {
-        <div class="dd-search">
-          <input type="text" placeholder="بحث..." [ngModel]="search()" (ngModelChange)="search.set($event)" />
+    <div class="dd-panel" [class.dd-panel--wide]="widePanel">
+      @if (searchable && options.length) {
+        <div class="dd-search" role="option">
+          <input
+            #searchBox
+            type="text"
+            placeholder="بحث..."
+            [ngModel]="search()"
+            (ngModelChange)="search.set($event)"
+            (click)="$event.stopPropagation()"
+            (keydown.enter)="chooseFirst(); $event.preventDefault()"
+            (keydown.escape)="closeFromSearch()"
+          />
         </div>
       }
       <div class="dd-list" role="listbox">
-        <div class="dd-item dd-empty" role="option" [class.dd-selected]="!value" (click)="choose('')">{{ placeholder }}</div>
         @for (o of filtered(); track o) {
           <div
             class="dd-item"
@@ -25,10 +33,9 @@
             [class.dd-selected]="o === value"
             [class.dd-special]="!!specialLast && o === specialLast"
             (click)="choose(o)"
-          >{{ o }}</div>
-        }
-        @if (searchable && !filtered().length) {
-          <div class="dd-no-results">لا توجد نتائج</div>
+          ><span class="dd-text">{{ o }}</span>@if (meta[o]) {
+            <span class="dd-code" dir="ltr">{{ meta[o] }}</span>
+          }</div>
         }
       </div>
     </div>

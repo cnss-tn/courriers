@@ -1,4 +1,12 @@
-.login-shell { padding-top: 12vh; padding-bottom: 3rem; }
+:host { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 100vh; }
+.login-shell {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: 3rem;
+}
+.login-shell > .row { width: 100%; margin: 0; }
 .login-card { position: relative; overflow: hidden; border: 1px solid #d3e9ef; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.06); background: rgba(255,255,255,0.92); }
 .login-card-accent { position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, #0e9db5, #06b6d4, #22d3ee); }
 .login-logo { border-radius: 50%; box-shadow: 0 2px 14px rgba(14, 157, 181, 0.18); }

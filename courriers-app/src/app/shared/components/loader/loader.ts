@@ -6,9 +6,9 @@ import { Component } from '@angular/core';
   standalone: true,
   template: `
     <div class="text-center py-4">
-      <div class="spinner-border text-success" role="status" aria-label="تحميل"></div>
+      <div class="spinner-border spinner-accent" role="status" aria-label="تحميل"></div>
     </div>
   `,
-  styles: [],
+  styles: ['.spinner-accent { color: var(--cp-accent); }'],
 })
 export class LoaderComponent {}

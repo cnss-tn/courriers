@@ -1,5 +1,13 @@
 .di-wrap { position: relative; }
-.di-input { cursor: pointer; background-color: rgba(255, 255, 255, 0.9); font-size: 0.75rem; padding-inline-end: 1.6rem; }
+.di-input { cursor: pointer; background-color: rgba(255, 255, 255, 0.9); font-size: 0.75rem; padding-inline-end: 1.6rem; padding-inline-start: 2.7rem; }
+.di-icon {
+  position: absolute;
+  inset-inline-start: 0.9rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--cp-muted);
+  pointer-events: none;
+}
 .di-input:disabled { cursor: not-allowed; }
 .di-clear {
   position: absolute;

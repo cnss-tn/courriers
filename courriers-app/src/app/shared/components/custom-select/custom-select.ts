@@ -1,12 +1,13 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, ElementRef, EventEmitter, HostListener, Input, Output, ViewChild, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DropdownComponent } from '../dropdown/dropdown';
 
 /**
  * Liste déroulante stylisée + ajout d'une nouvelle valeur
  * (pattern « النشاط » de campagnes) : dropdown custom filtrable,
- * bouton « + جديد » qui bascule vers un champ libre, bouton ✕ pour
- * revenir à la liste ou effacer le choix.
+ * bouton « + جديد » qui bascule vers un champ libre, et UN SEUL
+ * bouton ✕ à gauche : désélectionne, ou efface le texte + referme
+ * le champ « جديد ».
  */
 @Component({
   selector: 'app-custom-select',
@@ -22,11 +23,18 @@ export class CustomSelectComponent {
   @Input() required = false;
   @Input() disabled = false;
   @Input() value = '';
+  /** Texte secondaire par option (ex. code) : affiché + cherchable. */
+  @Input() meta: Record<string, string> = {};
+  /** Panneau élargi + liste plus haute (options longues sur une ligne). */
+  @Input() widePanel = false;
   @Output() valueChange = new EventEmitter<string>();
   @Output() newValue = new EventEmitter<string>();
 
   customMode = false;
   customText = '';
+  private host = inject(ElementRef);
+
+  @ViewChild('customInput') customInput?: ElementRef<HTMLInputElement>;
 
   onSelect(v: string): void {
     this.value = v;
@@ -36,6 +44,30 @@ export class CustomSelectComponent {
   openCustom(): void {
     this.customMode = true;
     this.customText = '';
+    setTimeout(() => this.customInput?.nativeElement.focus(), 0);
+  }
+
+  /** Saisie en direct : la valeur part au formulaire à chaque frappe (envoyée au submit). */
+  onCustomInput(v: string): void {
+    this.customText = v;
+    const t = String(v || '').trim();
+    if (t) this.newValue.emit(t);
+  }
+
+  confirmCustom(): void {
+    this.closeCustom();
+  }
+
+  /** ✕ unique à gauche : en mode « جديد » efface le texte + referme
+      le champ, sinon désélectionne l'option. */
+  onSingleClear(): void {
+    if (this.customMode) {
+      this.customText = '';
+      this.newValue.emit('');
+      this.customMode = false;
+      return;
+    }
+    this.clear();
   }
 
   closeCustom(): void {
@@ -43,15 +75,15 @@ export class CustomSelectComponent {
     this.customText = '';
   }
 
-  confirmCustom(): void {
-    const v = this.customText.trim();
-    if (!v) return;
-    this.newValue.emit(v); // le parent persiste puis met à jour value/options
-    this.customMode = false;
-    this.customText = '';
-  }
-
   clear(): void {
     this.onSelect('');
+  }
+
+  /** Clic hors du champ « جديد » (input + boutons) : retour à la liste. */
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(e: MouseEvent): void {
+    if (this.customMode && !this.host.nativeElement.contains(e.target)) {
+      this.closeCustom();
+    }
   }
 }

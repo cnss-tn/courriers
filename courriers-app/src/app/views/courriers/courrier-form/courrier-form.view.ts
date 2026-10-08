@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output, inject, signal } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild, inject, signal } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { CourriersController } from '../../../controllers/courriers.controller';
 import {
@@ -22,7 +22,7 @@ import { AutogrowDirective } from '../../../shared/directives/autogrow.directive
   templateUrl: './courrier-form.view.html',
   styleUrl: './courrier-form.view.css',
 })
-export class CourrierFormView implements OnInit {
+export class CourrierFormView implements OnInit, OnChanges {
   @Input() courrier: Courrier | null = null;
   @Input() serverError = '';
   @Output() submitted = new EventEmitter<CourrierDraft>();
@@ -34,6 +34,7 @@ export class CourrierFormView implements OnInit {
   form!: FormGroup;
   clientError = signal('');
   saving = signal(false);
+  @ViewChild('alertBox') private alertBox?: ElementRef<HTMLElement>;
 
   readonly reponseOptions = ['لا', 'نعم'];
 
@@ -62,6 +63,18 @@ export class CourrierFormView implements OnInit {
     void this.ctrl.loadFormLists();
   }
 
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['serverError']?.currentValue) this.scrollToAlert();
+  }
+
+  /** Fait défiler le popup jusqu'au message d'alerte dès son apparition. */
+  private scrollToAlert(): void {
+    setTimeout(
+      () => this.alertBox?.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' }),
+      0,
+    );
+  }
+
   async onNewRef(kind: 'source' | 'partie_type' | 'ihala', value: string): Promise<void> {
     const saved = await this.ctrl.addRef(kind, value);
     if (kind === 'source') this.form.patchValue({ source: saved });
@@ -74,6 +87,7 @@ export class CourrierFormView implements OnInit {
     const errors = validateCourrierDraft(draft); // validation = MODEL
     if (errors.length) {
       this.clientError.set(errors[0]);
+      this.scrollToAlert();
       return;
     }
     this.clientError.set('');

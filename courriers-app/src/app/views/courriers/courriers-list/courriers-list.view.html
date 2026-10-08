@@ -8,7 +8,7 @@
           <span class="composed-card-icon composed-card-icon--table" aria-hidden="true"></span>
           <div class="w-100">
             <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
-              <h2 class="h5 fw-bold mb-0">التصرف في المراسلات</h2>
+              <h2 class="h5 fw-bold mb-0 page-main-title">التصرف في المراسلات</h2>
               <div class="programmes-total text-start">
                 @if (!ctrl.loading()) {
                   {{ ctrl.filtered().length === ctrl.all().length ? `${ctrl.all().length} ${ctrl.all().length > 1 ? 'مراسلات' : 'مراسلة'}` : `${ctrl.filtered().length} / ${ctrl.all().length} مراسلات` }}
@@ -19,28 +19,55 @@
         </div>
 
         <section class="results-filters mt-2" aria-label="Filtres">
+          <span #fitProbe class="fit-probe" aria-hidden="true"></span>
           <div class="results-filters-shell">
             <div class="results-filters-section results-filters-section--primary">
               <div class="results-filters-row">
                 <div class="results-filter-compact results-filter-compact--search">
-                  <label class="form-label mb-1">بحث (موضوع / هوية / رقم)</label>
+                  <label class="form-label mb-1">بحث (رقم / هوية / موضوع / رد نهائي / جهة الرد)</label>
                   <input type="text" class="form-control form-control-sm" [ngModel]="ctrl.fSearch()" (ngModelChange)="ctrl.setFilter({ search: $event })" placeholder="..." />
                 </div>
-                <div class="results-filter-compact">
+                <div class="results-filter-compact results-filter-autofit" [style.width]="filterWidth(ctrl.refSources(), true, 220)">
                   <label class="form-label mb-1">المصدر</label>
-                  <app-dropdown [options]="ctrl.sources()" [value]="ctrl.fSource()" placeholder="الكل" [searchable]="false" (valueChange)="ctrl.setFilter({ source: $event })"></app-dropdown>
+                  <div class="filter-dd-row">
+                    <app-dropdown [options]="ctrl.refSources()" [meta]="ctrl.refSourcesMeta()" [value]="ctrl.fSource()" placeholder="الكل" (valueChange)="ctrl.setFilter({ source: $event })"></app-dropdown>
+                    @if (ctrl.fSource()) { <button type="button" class="single-clear-x" (click)="ctrl.setFilter({ source: '' })" title="مسح">✕</button> }
+                  </div>
                 </div>
-                <div class="results-filter-compact">
+                <div class="results-filter-compact results-filter-autofit" [style.width]="filterWidth(ctrl.destinataireOptions(), false, 140)">
                   <label class="form-label mb-1">الموجَّه إليه</label>
-                  <app-dropdown [options]="ctrl.destinataires()" [value]="ctrl.fDestinataire()" placeholder="الكل" [searchable]="false" (valueChange)="ctrl.setFilter({ destinataire: $event })"></app-dropdown>
+                  <div class="filter-dd-row">
+                    <app-dropdown [options]="ctrl.destinataireOptions()" [value]="ctrl.fDestinataire()" placeholder="الكل" [searchable]="false" (valueChange)="ctrl.setFilter({ destinataire: $event })"></app-dropdown>
+                    @if (ctrl.fDestinataire()) { <button type="button" class="single-clear-x" (click)="ctrl.setFilter({ destinataire: '' })" title="مسح">✕</button> }
+                  </div>
                 </div>
-                <div class="results-filter-compact results-filter-compact--type">
+                <div class="results-filter-compact results-filter-autofit" [style.width]="filterWidth(reponseOptions)">
                   <label class="form-label mb-1">الإجابة الواردة</label>
-                  <app-dropdown [options]="reponseOptions" [value]="ctrl.fReponse()" placeholder="الكل" [searchable]="false" (valueChange)="ctrl.setFilter({ reponse: $any($event) })"></app-dropdown>
+                  <div class="filter-dd-row">
+                    <app-dropdown [options]="reponseOptions" [value]="ctrl.fReponse()" placeholder="الكل" [searchable]="false" (valueChange)="ctrl.setFilter({ reponse: $any($event) })"></app-dropdown>
+                    @if (ctrl.fReponse()) { <button type="button" class="single-clear-x" (click)="ctrl.setFilter({ reponse: '' })" title="مسح">✕</button> }
+                  </div>
                 </div>
-                <div class="results-filter-compact results-filter-compact--year">
+                <div class="results-filter-compact results-filter-autofit" [style.width]="filterWidth(ctrl.years())">
                   <label class="form-label mb-1">السنة</label>
-                  <app-dropdown [options]="ctrl.years()" [value]="ctrl.fYear()" placeholder="الكل" [searchable]="false" (valueChange)="ctrl.setFilter({ year: $event })"></app-dropdown>
+                  <div class="filter-dd-row">
+                    <app-dropdown [options]="ctrl.years()" [value]="ctrl.fYear()" placeholder="الكل" [searchable]="false" (valueChange)="ctrl.setFilter({ year: $event })"></app-dropdown>
+                    @if (ctrl.fYear()) { <button type="button" class="single-clear-x" (click)="ctrl.setFilter({ year: '' })" title="مسح">✕</button> }
+                  </div>
+                </div>
+                <div class="results-filter-compact results-filter-autofit" [style.width]="filterWidth(ctrl.monthLabels)">
+                  <label class="form-label mb-1">شهر تاريخ الوصول</label>
+                  <div class="filter-dd-row">
+                    <app-dropdown [options]="ctrl.monthLabels" [value]="ctrl.fMonthArrivee()" placeholder="الكل" [searchable]="false" (valueChange)="ctrl.setFilter({ monthArrivee: $event })"></app-dropdown>
+                    @if (ctrl.fMonthArrivee()) { <button type="button" class="single-clear-x" (click)="ctrl.setFilter({ monthArrivee: '' })" title="مسح">✕</button> }
+                  </div>
+                </div>
+                <div class="results-filter-compact results-filter-autofit" [style.width]="filterWidth(ctrl.monthLabels)">
+                  <label class="form-label mb-1">شهر تاريخ الاستلام</label>
+                  <div class="filter-dd-row">
+                    <app-dropdown [options]="ctrl.monthLabels" [value]="ctrl.fMonthReception()" placeholder="الكل" [searchable]="false" (valueChange)="ctrl.setFilter({ monthReception: $event })"></app-dropdown>
+                    @if (ctrl.fMonthReception()) { <button type="button" class="single-clear-x" (click)="ctrl.setFilter({ monthReception: '' })" title="مسح">✕</button> }
+                  </div>
                 </div>
                 <div class="results-filter-actions">
                   <button type="button" class="btn btn-outline-secondary btn-sm" (click)="ctrl.resetFilters()">إلغاء</button>
@@ -57,10 +84,13 @@
         </section>
 
         <div class="table-responsive composed-table-wrap flex-grow-1 courriers-scroll">
+          @if (ctrl.listsError()) {
+            <div class="text-center small text-muted py-1">⚠ {{ ctrl.listsError() }}</div>
+          }
           @if (ctrl.loading()) {
             <app-loader></app-loader>
           } @else if (ctrl.error()) {
-            <div class="text-center text-danger fw-semibold py-4">{{ ctrl.error() }}</div>
+            <div class="app-alert py-4">{{ ctrl.error() }}</div>
           } @else {
             <table class="table table-hover align-middle composed-table mb-0 text-center" dir="rtl">
               <thead>
@@ -77,14 +107,14 @@
                 }
                 @for (c of ctrl.slice(); track c.id) {
                   <tr class="courrier-row" (click)="details.set(c)" tabindex="0">
-                    <td class="fw-bold" dir="ltr">#{{ c.seq }}</td>
+                    <td class="seq-cell" dir="ltr">{{ fmtSeq(c.seq) }}</td>
                     <td dir="ltr" class="text-nowrap"><small>{{ c.dateArrivee }}</small></td>
                     <td>{{ c.source }}</td>
                     <td>{{ c.typePartie }}</td>
                     <td class="text-truncate-cell">{{ c.identitePartie }}</td>
-                    <td class="text-truncate-cell">{{ c.objet }}</td>
+                    <td class="text-truncate-cell text-truncate-cell--wide">{{ c.objet }}</td>
                     <td>
-                      <span class="badge" [class.badge-archive]="c.destinataire === 'Archive'" [class.badge-dest]="c.destinataire !== 'Archive'">{{ c.destinataire }}</span>
+                      <span class="badge" [class.badge-archive]="c.destinataire === 'الأرشيف'" [class.badge-dest]="c.destinataire !== 'الأرشيف'">{{ c.destinataire }}</span>
                     </td>
                     <td dir="ltr" class="text-nowrap"><small>{{ c.dateReception }}</small></td>
                     <td>{{ c.ihalaIla || '—' }}</td>
@@ -92,7 +122,7 @@
                       <span class="badge" [class.badge-yes]="c.reponseRecue === 'نعم'" [class.badge-no]="c.reponseRecue !== 'نعم'">{{ c.reponseRecue }}</span>
                     </td>
                     <td dir="ltr" class="text-nowrap"><small>{{ c.dateReponseRecue || '—' }}</small></td>
-                    <td class="text-truncate-cell">{{ c.reponseFinale || '—' }}</td>
+                    <td class="text-truncate-cell text-truncate-cell--wide">{{ c.reponseFinale || '—' }}</td>
                     <td dir="ltr" class="text-nowrap"><small>{{ c.dateReponseFinale || '—' }}</small></td>
                     <td>{{ c.jihaReponse || '—' }}</td>
                     <td (click)="$event.stopPropagation()">
@@ -114,6 +144,7 @@
           [totalPages]="ctrl.totalPages()"
           [total]="ctrl.all().length"
           [filtered]="ctrl.filtered().length"
+          [pageSize]="ctrl.pageSize"
           unit="مراسلة"
           unitPlural="مراسلات"
           (pageChange)="ctrl.goTo($event)"
@@ -124,7 +155,7 @@
 </div>
 
 @if (showForm()) {
-  <app-popup [title]="editing() ? 'تعديل المراسلة رقم ' + editing()!.seq : 'مراسلة جديدة'" [medium]="true" (closed)="showForm.set(false)">
+  <app-popup [title]="editing() ? 'تعديل المراسلة' : 'مراسلة جديدة'" [medium]="true" (closed)="showForm.set(false)">
     <app-courrier-form
       [courrier]="editing()"
       [serverError]="saveError()"
@@ -135,11 +166,14 @@
 }
 
 @if (details()) {
-  <app-popup [title]="'بطاقة المراسلة رقم ' + details()!.seq" (closed)="details.set(null)">
+  <app-popup title="معطيات المراسلة" (closed)="details.set(null)">
+    <div class="details-wrap">
     <app-courrier-details [courrier]="details()!"></app-courrier-details>
-    <div class="d-flex gap-2 mt-3">
-      <button type="button" class="btn btn-outline-secondary flex-grow-1" (click)="details.set(null)">إغلاق</button>
-      <button type="button" class="btn btn-primary flex-grow-1" (click)="openEdit(details()!); details.set(null)">تعديل</button>
+    <div class="popup-actions">
+      <button type="button" class="btn btn-outline-secondary btn-sm" (click)="details.set(null)">إغلاق</button>
+      <button type="button" class="btn btn-primary btn-sm" (click)="openEdit(details()!); details.set(null)">تعديل</button>
+      <button type="button" class="btn btn-outline-danger btn-sm" (click)="removeDetails()">حذف</button>
+    </div>
     </div>
   </app-popup>
 }

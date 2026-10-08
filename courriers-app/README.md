@@ -28,7 +28,7 @@ Publiez aussi `firestore.rules` dans Firebase Console > Firestore > Rules.
 ## 3) Créer le premier admin
 
 ```bash
-npm run seed:admin -- 1000 "ChangeMe123" "مدير النظام" "Admin" CT
+npm run seed:admin -- 1000 "ChangeMe123" "مدير النظام" "Admin"
 ```
 
 ## 4) Lancer / builder
@@ -50,7 +50,7 @@ src/app/
     auth/            login.view
     courriers/       courriers-list.view + courrier-form.view + courrier-details.view
   core/            # infrastructure : firebase.service, auth.service,
-                   # courriers/users/referentiels services, guards
+                   # courriers/sources/recipients/relevant-part-types services, guards
   shared/          # UI générique : footer, background, popup-modal, dropdown,
                    # custom-select, pagination, export-buttons, loader
   layout/          # main-layout (logo + logout fixes + contenu + footer)
@@ -63,17 +63,19 @@ le modèle valide.** Détails pédagogiques : voir `docs/MVC.md`.
 
 | Collection     | Contenu |
 | -------------- | ------- |
-| `users`        | Matricule, FR_Name, AR_Name, Grade, Code_BR, Pw (sha256), user_type, pw_changed, email |
-| `sessions`     | token -> { matricule, createdAt } (1 session live / user, TTL 4h côté client) |
+| `users`        | Matricule, FR_Name, AR_Name, Pw (sha256) — login uniquement, rien d'autre |
+| `recipients`   | id `Matricule-FR_Name`, champs { Matricule, FR_Name, AR_Name } (الموجَّه إليه : import `users` via `npm run import:recipients`) |
+| `sessions`     | id `matricule-frName` -> { matricule, createdAt, expiresAt } (heures lisibles Timestamp, 1 session live / user, expire à 19h00 ; docs expirés supprimés au logout, à l'expiration et au démarrage/login) |
 | `courriers`    | seq, dateArrivee, source, typePartie, identitePartie, objet, destinataire, dateReception, ihalaIla, reponseRecue, dateReponseRecue, reponseFinale, dateReponseFinale, jihaReponse, createdAt/By, updatedAt |
-| `referentiels` | { type: source \| partie_type \| ihala, value } (listes extensibles) |
+| `relevant_part_type` | doc id = valeur, champ { name } (نوع الطرف المعني : مؤجر, lecture seule) |
+| `sources`      | id `code-name`, champs { code, name } (المصدر : import `Sources.xlsx`, lecture seule) |
 | `counters/courriers` | { lastSeq } (séquence 1..n via transaction) |
 
 ## 7) Règles de gestion
 
 - **Séquence** attribuée automatiquement à la création (jamais réutilisée après suppression).
-- **Destinataire** = contrôleurs (users) + **« Archive » toujours en dernier**.
-- **Source / نوع الطرف / إحالة إلى** : choisir ou **« + جديد »** (persisté en `referentiels`).
+- **Destinataire** = tous les users (« matricule + nom arabe », ex. 126359 أحمد الزكراوي) + **« الأرشيف » toujours en dernier**.
+- **المصدر / إحالة إلى** : bureaux/directions de la table `sources` (import `Sources.xlsx`) ; **نوع الطرف** : table `relevant_part_type` ; **« + جديد »** partout : valeur libre utilisée telle quelle, jamais persistée.
 - Si **« الإجابة الواردة = نعم »** alors تاريخ الإجابة الواردة requis.
 
 ## 8) Déploiement GitHub Pages

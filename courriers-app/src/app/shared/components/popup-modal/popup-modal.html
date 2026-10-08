@@ -9,8 +9,10 @@
   >
     <div class="app-modal-content">
       <div class="modal-header border-0 py-3 px-4">
-        <h5 class="modal-title fw-bold">{{ title }}</h5>
-        <button type="button" class="btn-close" (click)="close()" aria-label="إغلاق"></button>
+        @if (title) {
+          <h5 class="modal-title fw-bold">{{ title }}</h5>
+        }
+        <button type="button" class="btn-close" (click)="close()" (mousedown)="$event.preventDefault()" aria-label="إغلاق"></button>
       </div>
       <div class="modal-body px-4 pb-4" style="padding-top: 0.9rem;">
         <ng-content></ng-content>

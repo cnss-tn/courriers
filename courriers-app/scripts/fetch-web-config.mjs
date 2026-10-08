@@ -99,7 +99,6 @@ export const environment = {
     messagingSenderId: '${cfg.messagingSenderId || ''}',
     appId: '${cfg.appId || ''}',
   },
-  sessionTtlMs: 4 * 60 * 60 * 1000, // 4h comme l'app campagnes
 };
 `;
   writeFileSync(envFile, content);

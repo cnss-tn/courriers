@@ -12,6 +12,7 @@ export class PaginationComponent {
   @Input() totalPages = 1;
   @Input() total = 0;
   @Input() filtered = 0;
+  @Input() pageSize = 5;
   @Input() unit = 'مراسلة';
   @Input() unitPlural = 'مراسلات';
   @Output() pageChange = new EventEmitter<number>();

@@ -1,34 +1,38 @@
 <div class="mb-3">
-  @if (label) { <label class="form-label">{{ label }}</label> }
-  @if (!customMode) {
-    <div class="custom-select-wrap">
-      <app-dropdown
-        [options]="options"
-        [value]="value"
-        [placeholder]="placeholder"
-        [required]="required"
-        [disabled]="disabled"
-        (valueChange)="onSelect($event)"
-      ></app-dropdown>
-      <div class="custom-select-actions">
-        <button type="button" class="btn-custom-activity-btn" (click)="openCustom()" [disabled]="disabled">+ جديد</button>
-        @if (value) {
-          <button type="button" class="sector-clear-badge" (click)="clear()" title="مسح الاختيار">✕</button>
-        }
-      </div>
+  @if (label) { <label class="form-label" [innerHTML]="label"></label> }
+  <div class="cs-row">
+    <div class="cs-field">
+      @if (!customMode) {
+        <app-dropdown
+          [options]="options"
+          [value]="value"
+          [placeholder]="placeholder"
+          [required]="required"
+          [disabled]="disabled"
+          [meta]="meta"
+          [widePanel]="widePanel"
+          (valueChange)="onSelect($event)"
+        ></app-dropdown>
+      } @else {
+        <input
+          #customInput
+          type="text"
+          class="form-control"
+          placeholder="أدخل القيمة الجديدة"
+          [ngModel]="customText"
+          (ngModelChange)="onCustomInput($event)"
+          [disabled]="disabled"
+          (keyup.enter)="confirmCustom()"
+        />
+      }
     </div>
-  } @else {
-    <div class="custom-add-wrap">
-      <input
-        type="text"
-        class="form-control"
-        placeholder="أدخل القيمة الجديدة"
-        [(ngModel)]="customText"
-        [disabled]="disabled"
-        (keyup.enter)="confirmCustom()"
-      />
-      <button type="button" class="btn btn-primary btn-sm" (click)="confirmCustom()" [disabled]="!customText.trim()">إضافة</button>
-      <button type="button" class="btn-back-to-list" (click)="closeCustom()" title="الرجوع إلى القائمة">✕</button>
+    @if (value || customMode) {
+      <button type="button" class="single-clear-x" (click)="onSingleClear()" [disabled]="disabled" title="مسح">✕</button>
+    }
+  </div>
+  @if (!customMode && !value) {
+    <div class="custom-select-actions">
+      <button type="button" class="btn-custom-activity-btn" (click)="openCustom()" [disabled]="disabled">+ جديد</button>
     </div>
   }
 </div>

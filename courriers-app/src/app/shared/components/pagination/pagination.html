@@ -1,4 +1,4 @@
-@if (total > 0) {
+@if (filtered > pageSize) {
   <div class="programmes-pagination">
     <div class="programmes-pagination-row">
       <button type="button" class="btn btn-outline-secondary btn-sm programmes-page-btn" (click)="pageChange.emit(page - 1)" [disabled]="page <= 1">الصفحة السابقة</button>

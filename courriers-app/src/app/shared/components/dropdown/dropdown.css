@@ -8,7 +8,7 @@
   display: flex; align-items: center; gap: 0.55rem;
   padding: 0.22rem 0.55rem 0.45rem;
   font-size: 0.78rem; font-weight: 400; color: var(--cp-ink);
-  background-color: rgba(255, 255, 255, 0.92);
+  background-color: #fbfcfd;
   border: 1px solid rgba(11, 90, 110, 0.14);
   border-radius: 10px;
   cursor: pointer;
@@ -19,7 +19,7 @@
 .dd-open .dd-toggle {
   border-color: var(--cp-accent);
   box-shadow: 0 0 0 3px var(--cp-focus-ring);
-  background-color: #fff;
+  background-color: #fbfcfd;
 }
 .dd-toggle-text {
   flex: 1 1 auto;
@@ -45,15 +45,19 @@
   box-shadow: var(--cp-shadow), 0 16px 40px -20px rgba(11, 53, 60, 0.22);
   overflow: hidden;
 }
-.dd-search { padding: 0.35rem 0.9rem; border-bottom: 1px solid var(--cp-border); }
+/* Recherche en première ligne de la liste ouverte */
+.dd-panel--wide { width: max-content; min-width: 100%; max-width: 26rem; }
+.dd-panel--wide .dd-list { max-height: 14rem; }
+.dd-search { padding: 0.4rem 0.55rem; border-bottom: 1px solid var(--cp-border); }
 .dd-search input {
   width: 100%;
-  border: none; outline: none; background: transparent;
+  border: none; outline: none; background: var(--cp-surface-2);
   font-size: 0.8rem; color: var(--cp-ink);
-  padding: 0.2rem 0;
+  padding: 0.3rem 0.55rem;
+  border-radius: 8px;
 }
 .dd-search input::placeholder { color: var(--cp-muted); opacity: 0.8; }
-.dd-list { max-height: 12rem; overflow-y: auto; }
+.dd-list { max-height: 9rem; overflow-y: auto; }
 .dd-list::-webkit-scrollbar { width: 8px; }
 .dd-list::-webkit-scrollbar-track { background: transparent; }
 .dd-list::-webkit-scrollbar-thumb { background: rgba(14, 157, 181, 0.3); border-radius: 8px; }
@@ -64,16 +68,23 @@
   white-space: normal; overflow-wrap: break-word;
 }
 .dd-item + .dd-item { border-top: 1px solid rgba(11, 53, 60, 0.05); }
+.dd-item { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+.dd-text { min-width: 0; overflow-wrap: break-word; }
+.dd-code {
+  flex-shrink: 0;
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: var(--cp-accent);
+  background: rgba(14, 157, 181, 0.1);
+  border-radius: 6px;
+  padding: 0.05rem 0.45rem;
+  white-space: nowrap;
+}
 .dd-item:hover { background: rgba(14, 157, 181, 0.1); }
 .dd-selected { background: rgba(14, 157, 181, 0.1); }
-.dd-empty { color: var(--cp-muted); }
 .dd-special {
   font-weight: 800;
   background: linear-gradient(135deg, rgba(14, 157, 181, 0.1), rgba(34, 211, 238, 0.14));
   border-top: 1px dashed rgba(14, 157, 181, 0.35) !important;
   margin-top: 0.25rem;
-}
-.dd-no-results {
-  padding: 0.6rem; text-align: center;
-  font-size: 0.8rem; color: var(--cp-muted);
 }

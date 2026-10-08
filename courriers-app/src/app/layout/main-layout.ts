@@ -15,6 +15,9 @@ import { FooterComponent } from '../shared/components/footer/footer';
     <button type="button" class="page-logout" (click)="logout()" title="خروج">
       <img src="images/off_icon.svg" alt="خروج" width="24" height="24" />
     </button>
+    @if (auth.arName()) {
+      <span class="page-user">{{ auth.arName() }}</span>
+    }
     <main class="container-fluid composed-main" dir="rtl">
       <router-outlet></router-outlet>
     </main>
@@ -22,7 +25,7 @@ import { FooterComponent } from '../shared/components/footer/footer';
   `,
 })
 export class MainLayoutComponent {
-  private auth = inject(AuthController);
+  protected auth = inject(AuthController);
 
   logout(): void {
     this.auth.logout();

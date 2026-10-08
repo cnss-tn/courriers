@@ -1,31 +1,56 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { AuthService } from '../core/auth.service';
 import { CourriersService } from '../core/courriers.service';
-import { ReferentielsService } from '../core/referentiels.service';
-import { UsersService } from '../core/users.service';
+import { SourcesService } from '../core/sources.service';
+import { RecipientsService } from '../core/recipients.service';
+import { RelevantPartTypesService } from '../core/relevant-part-types.service';
 import {
   ARCHIVE_DESTINATAIRE,
   Courrier,
   CourrierDraft,
+  formatSeq,
   validateCourrierDraft,
 } from '../models/courrier.model';
-import { ReferentielType } from '../models/referentiel.model';
 
 // CONTROLLER — seul endroit autorisé à orchestrer les données des courriers.
 // Les vues se contentent de lire ces signals et d'appeler ces méthodes.
+
+/** Mois (noms tunisiens) pour les filtres شهر تاريخ الوصول / شهر تاريخ الاستلام. */
+const MONTHS: Array<{ n: string; label: string }> = [
+  { n: '01', label: 'جانفي' },
+  { n: '02', label: 'فيفري' },
+  { n: '03', label: 'مارس' },
+  { n: '04', label: 'أفريل' },
+  { n: '05', label: 'ماي' },
+  { n: '06', label: 'جوان' },
+  { n: '07', label: 'جويلية' },
+  { n: '08', label: 'أوت' },
+  { n: '09', label: 'سبتمبر' },
+  { n: '10', label: 'أكتوبر' },
+  { n: '11', label: 'نوفمبر' },
+  { n: '12', label: 'ديسمبر' },
+];
+
+/** Libellé du mois → '01'..'12' ('' si inconnu/vide). */
+function monthNum(label: string): string {
+  return MONTHS.find((m) => m.label === label)?.n ?? '';
+}
 @Injectable({ providedIn: 'root' })
 export class CourriersController {
   private courriers = inject(CourriersService);
-  private refs = inject(ReferentielsService);
-  private users = inject(UsersService);
+  private partTypes = inject(RelevantPartTypesService);
+  private sourcesService = inject(SourcesService);
+  private recipients = inject(RecipientsService);
   private auth = inject(AuthService);
 
-  readonly pageSize = 8;
+  readonly pageSize = 5;
 
   // --- état ---
   readonly all = signal<Courrier[]>([]);
   readonly loading = signal(true);
   readonly error = signal('');
+  /** Échec non bloquant des listes déroulantes (n'empêche pas l'affichage du tableau). */
+  readonly listsError = signal('');
 
   // --- filtres (UI state piloté par le contrôleur) ---
   readonly fSearch = signal('');
@@ -33,10 +58,16 @@ export class CourriersController {
   readonly fDestinataire = signal('');
   readonly fReponse = signal<'' | 'نعم' | 'لا'>('');
   readonly fYear = signal('');
+  readonly fMonthArrivee = signal('');
+  readonly fMonthReception = signal('');
   readonly page = signal(1);
+  /** Libellés des mois pour les dropdowns des filtres. */
+  readonly monthLabels = MONTHS.map((m) => m.label);
 
   // --- listes pour le formulaire ---
   readonly refSources = signal<string[]>([]);
+  /** Code br/dir par nom de source (badge + recherche par code). */
+  readonly refSourcesMeta = signal<Record<string, string>>({});
   readonly refPartieTypes = signal<string[]>([]);
   readonly refIhala = signal<string[]>([]);
   readonly destinataireOptions = signal<string[]>([]);
@@ -47,7 +78,8 @@ export class CourriersController {
     return this.all().filter((c) => {
       if (
         q &&
-        ![c.objet, c.identitePartie, c.typePartie, c.source, String(c.seq)].some((v) =>
+        // بحث في : الرقم / هوية الطرف المعني / الموضوع / الرد النهائي / جهة الرد النهائي
+        ![String(c.seq), c.identitePartie, c.objet, c.reponseFinale, c.jihaReponse].some((v) =>
           String(v || '').toLowerCase().includes(q),
         )
       )
@@ -56,6 +88,8 @@ export class CourriersController {
       if (this.fDestinataire() && c.destinataire !== this.fDestinataire()) return false;
       if (this.fReponse() && c.reponseRecue !== this.fReponse()) return false;
       if (this.fYear() && (c.dateArrivee || '').slice(0, 4) !== this.fYear()) return false;
+      if (this.fMonthArrivee() && (c.dateArrivee || '').slice(5, 7) !== monthNum(this.fMonthArrivee())) return false;
+      if (this.fMonthReception() && (c.dateReception || '').slice(5, 7) !== monthNum(this.fMonthReception())) return false;
       return true;
     });
   });
@@ -75,24 +109,14 @@ export class CourriersController {
       .reverse(),
   );
 
-  readonly sources = computed(() =>
-    [...new Set(this.all().map((c) => c.source).filter(Boolean))].sort((a, b) =>
-      a.localeCompare(b, 'ar'),
-    ),
-  );
-
-  readonly destinataires = computed(() =>
-    [...new Set(this.all().map((c) => c.destinataire).filter(Boolean))].sort((a, b) =>
-      a.localeCompare(b, 'ar'),
-    ),
-  );
-
   // --- chargement ---
   async reload(): Promise<void> {
     this.loading.set(true);
     this.error.set('');
     try {
       this.all.set(await this.courriers.list());
+      // Une suppression peut faire disparaître la page courante : la replier si besoin.
+      if (this.page() > this.totalPages()) this.page.set(this.totalPages());
     } catch {
       this.error.set(
         typeof navigator !== 'undefined' && navigator.onLine === false
@@ -105,23 +129,25 @@ export class CourriersController {
   }
 
   async loadFormLists(): Promise<void> {
+    this.listsError.set('');
     try {
-      const [s, t, h, ctrls] = await Promise.all([
-        this.refs.list('source'),
-        this.refs.list('partie_type'),
-        this.refs.list('ihala'),
-        this.users.controleurs(),
+      const [src, t, dests] = await Promise.all([
+        this.sourcesService.listWithCodes(),
+        this.partTypes.list(),
+        this.recipients.list(),
       ]);
-      this.refSources.set(s);
+      this.refSources.set(src.map((x) => x.name));
+      this.refSourcesMeta.set(Object.fromEntries(src.map((x) => [x.name, x.code] as const)));
       this.refPartieTypes.set(t);
-      this.refIhala.set(h);
-      // Destinataires = contrôleurs + « Archive » toujours en dernier
+      // إحالة إلى suit les valeurs de la table sources (comme المصدر)
+      this.refIhala.set(src.map((x) => x.name));
+      // Destinataires = table `recipients` « matricule + nom arabe » (ex. 126359 أحمد الزكراوي) + « الأرشيف » en dernier
       this.destinataireOptions.set([
-        ...ctrls.map((u) => `${(u.arName || u.frName).trim()} (${u.matricule})`),
+        ...dests.map((u) => `${String(u.matricule).trim()} ${(u.arName || u.frName).trim()}`.trim()),
         ARCHIVE_DESTINATAIRE,
       ]);
     } catch {
-      this.error.set('تعذر تحميل القوائم');
+      this.listsError.set('تعذر تحميل القوائم');
     }
   }
 
@@ -132,12 +158,16 @@ export class CourriersController {
     destinataire?: string;
     reponse?: '' | 'نعم' | 'لا';
     year?: string;
+    monthArrivee?: string;
+    monthReception?: string;
   }): void {
     if (patch.search !== undefined) this.fSearch.set(patch.search);
     if (patch.source !== undefined) this.fSource.set(patch.source);
     if (patch.destinataire !== undefined) this.fDestinataire.set(patch.destinataire);
     if (patch.reponse !== undefined) this.fReponse.set(patch.reponse);
     if (patch.year !== undefined) this.fYear.set(patch.year);
+    if (patch.monthArrivee !== undefined) this.fMonthArrivee.set(patch.monthArrivee);
+    if (patch.monthReception !== undefined) this.fMonthReception.set(patch.monthReception);
     this.page.set(1);
   }
 
@@ -147,6 +177,8 @@ export class CourriersController {
     this.fDestinataire.set('');
     this.fReponse.set('');
     this.fYear.set('');
+    this.fMonthArrivee.set('');
+    this.fMonthReception.set('');
     this.page.set(1);
   }
 
@@ -154,13 +186,9 @@ export class CourriersController {
     this.page.set(Math.min(Math.max(1, p), this.totalPages()));
   }
 
-  /** Persiste une valeur de référentiel saisie via « + جديد », retourne la valeur. */
-  async addRef(kind: ReferentielType, value: string): Promise<string> {
-    const saved = await this.refs.addIfNew(kind, value);
-    if (kind === 'source') this.refSources.set(await this.refs.list('source'));
-    else if (kind === 'partie_type') this.refPartieTypes.set(await this.refs.list('partie_type'));
-    else this.refIhala.set(await this.refs.list('ihala'));
-    return saved;
+  /** Valeur saisie via « + جديد » : utilisée telle quelle, jamais persistée en base. */
+  async addRef(kind: 'source' | 'partie_type' | 'ihala', value: string): Promise<string> {
+    return String(value || '').trim();
   }
 
   /**
@@ -186,11 +214,6 @@ export class CourriersController {
         dateReponseFinale: draft.dateReponseFinale || '',
         jihaReponse: (draft.jihaReponse || '').trim(),
       };
-      await Promise.all([
-        this.refs.addIfNew('source', payload.source),
-        this.refs.addIfNew('partie_type', payload.typePartie),
-        payload.ihalaIla ? this.refs.addIfNew('ihala', payload.ihalaIla) : Promise.resolve(''),
-      ]);
       if (editingId) {
         await this.courriers.update(editingId, payload);
       } else {
@@ -228,7 +251,7 @@ export class CourriersController {
 
   exportRows(): string[][] {
     return this.filtered().map((c) => [
-      String(c.seq), c.dateArrivee, c.source, c.typePartie, c.identitePartie, c.objet,
+      formatSeq(c.seq), c.dateArrivee, c.source, c.typePartie, c.identitePartie, c.objet,
       c.destinataire, c.dateReception, c.ihalaIla, c.reponseRecue, c.dateReponseRecue,
       c.reponseFinale, c.dateReponseFinale, c.jihaReponse,
     ]);

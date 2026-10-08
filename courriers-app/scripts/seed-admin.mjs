@@ -1,9 +1,10 @@
 /**
- * Création du premier compte admin dans Firestore (collection `users`).
+ * Création d'un compte dans Firestore (collection `users`) :
+ * uniquement Matricule, FR_Name, AR_Name, Pw (crypté sha256).
  * Usage :
- *   node scripts/seed-admin.mjs <matricule> <motDePasse> "<nomAr>" "<nomFr>" [grade]
+ *   node scripts/seed-admin.mjs <matricule> <motDePasse> "<nomAr>" "<nomFr>"
  * Exemple :
- *   node scripts/seed-admin.mjs 1000 "ChangeMe123" "مدير النظام" "Admin" CT
+ *   node scripts/seed-admin.mjs 1000 "ChangeMe123" "مدير النظام" "Admin"
  *
  * Le script lit la clé service-account dans ../needs/*.json (jamais commitée : *.json ignoré par git).
  * Hash stocké : 'sha256:' + hex(SHA256(matricule + ':' + motDePasse)) — même format que campagnes.
@@ -30,10 +31,10 @@ const serviceAccount = (await import(pathToFileURL(join(needsDir, keyFile)).href
 initializeApp({ credential: cert(serviceAccount) });
 const db = getFirestore();
 
-const [matricule, password, arName = 'مدير النظام', frName = 'Admin', grade = 'CT'] =
+const [matricule, password, arName = 'مدير النظام', frName = 'Admin'] =
   process.argv.slice(2);
 if (!matricule || !password) {
-  console.error('Usage: node scripts/seed-admin.mjs <matricule> <motDePasse> "[nomAr]" "[nomFr]" [grade]');
+  console.error('Usage: node scripts/seed-admin.mjs <matricule> <motDePasse> "[nomAr]" "[nomFr]"');
   process.exit(1);
 }
 
@@ -44,14 +45,9 @@ await db.collection('users').doc(docId).set(
     Matricule: Number(matricule),
     FR_Name: frName,
     AR_Name: arName,
-    Grade: grade,
-    Code_BR: '',
     Pw: `sha256:${hex}`,
-    user_type: 'admin',
-    pw_changed: 1,
-    email: '',
   },
   { merge: true },
 );
-console.log(`Admin ${matricule} créé (doc ${docId}). Connectez-vous puis changez le mot de passe.`);
+console.log(`Compte ${matricule} créé (doc ${docId}).`);
 process.exit(0);

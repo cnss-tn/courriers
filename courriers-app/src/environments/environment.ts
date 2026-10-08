@@ -10,5 +10,4 @@ export const environment = {
     messagingSenderId: '473561171823',
     appId: '1:473561171823:web:a56f5b682fe44820678a9a',
   },
-  sessionTtlMs: 4 * 60 * 60 * 1000, // 4h comme l'app campagnes
 };

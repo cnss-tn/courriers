@@ -5,21 +5,21 @@ import {
   doc,
   getDoc,
   getDocs,
+  limit,
   orderBy,
   query,
-  runTransaction,
   setDoc,
 } from 'firebase/firestore';
 import { FirebaseService } from './firebase.service';
-import { Courrier } from '../models/courrier.model';
+import { Courrier, formatSeq } from '../models/courrier.model';
 
 const COL = 'courriers';
-const COUNTER_DOC = 'counters/courriers';
 
 /**
- * CRUD des courriers + séquence numérique 1..n via transaction
- * (compteur counters/courriers.lastSeq — jamais réutilisé après suppression,
- *  comme un registre papier du secrétariat).
+ * CRUD des courriers + séquence numérique.
+ * Règle : next = max(seq existants) + 1 (jamais de trou réutilisé sauf si
+ * le dernier est supprimé) ; base vide -> on repart de 1.
+ * Doc id : `C-00001`, `C-00002`, ... Transaction anti-doublon.
  */
 @Injectable({ providedIn: 'root' })
 export class CourriersService {
@@ -33,18 +33,26 @@ export class CourriersService {
 
   async create(input: Omit<Courrier, 'id' | 'seq'>): Promise<Courrier> {
     const db = this.fb.firestore();
-    const seq = await runTransaction(db, async (tx) => {
-      const ref = doc(db, COUNTER_DOC);
-      const snap = await tx.get(ref);
-      const next = Number(snap.exists() ? (snap.data()['lastSeq'] ?? 0) : 0) + 1;
-      tx.set(ref, { lastSeq: next }, { merge: true });
-      return next;
+    // Dernier seq existant (0 si base vide -> on repart de 1).
+    const snap = await getDocs(query(collection(db, COL), orderBy('seq', 'desc'), limit(1)));
+    let seq = 0;
+    snap.forEach((d) => {
+      const s = Number((d.data() as Courrier)['seq'] ?? 0);
+      if (Number.isFinite(s) && s > seq) seq = s;
     });
-    const now = Date.now();
-    const data = { ...input, seq, createdAt: now, updatedAt: now };
-    const id = `C-${seq}-${now}`;
-    await setDoc(doc(db, COL, id), data);
-    return { id, ...data };
+    // Pré-vérification d'existence + retries : 2 créations simultanées
+    // ne reçoivent jamais le même id.
+    for (let attempt = 0; attempt < 5; attempt++) {
+      seq += 1;
+      const id = `C-${formatSeq(seq)}`;
+      const existing = await getDoc(doc(db, COL, id));
+      if (existing.exists()) continue;
+      const now = Date.now();
+      const data = { ...input, seq, createdAt: now, updatedAt: now };
+      await setDoc(doc(db, COL, id), data);
+      return { id, ...data };
+    }
+    throw new Error('seq_collision');
   }
 
   async update(id: string, patch: Partial<Courrier>): Promise<void> {

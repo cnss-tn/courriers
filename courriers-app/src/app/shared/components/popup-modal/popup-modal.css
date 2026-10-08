@@ -20,7 +20,7 @@
 .app-modal-content .modal-title { margin: 0 auto; text-align: center; }
 .app-modal-content .btn-close {
   position: absolute;
-  inset-inline-start: 1rem;
+  inset-inline-end: 1rem;
   top: 50%;
   transform: translateY(-50%);
   margin: 0;

@@ -62,33 +62,34 @@ service cloud.firestore {
       return d.Matricule is number
         && isNonEmptyString(d.FR_Name)
         && isNonEmptyString(d.AR_Name)
-        && isNonEmptyString(d.Grade)
-        && (d.Code_BR is string || d.Code_BR is number)
-        && isNonEmptyString(d.Pw)
-        && (d.user_type == 'admin' || d.user_type == 'normal')
-        && d.pw_changed is number
-        && d.email is string;
+        && isNonEmptyString(d.Pw);
     }
 
-    // ---------- sessions (jetons aléatoires créés au login) ----------
-    match /sessions/{token} {
+    // ---------- sessions (1 doc par user : id `matricule-frName`, réécrit à chaque login) ----------
+    match /sessions/{id} {
       allow read: if true;
-      allow create: if request.resource.data.matricule is string
-        && request.resource.data.createdAt is number;
-      allow update: if false;
+      allow create, update: if request.resource.data.matricule is string
+        && request.resource.data.createdAt is timestamp
+        && request.resource.data.expiresAt is timestamp;
       allow delete: if true;
     }
 
-    // ---------- référentiels (listes extensibles) ----------
-    match /referentiels/{id} {
+    // ---------- relevant_part_type en lecture seule (نوع الطرف المعني, « + جديد » non persisté) ----------
+    match /relevant_part_type/{id} {
       allow read: if true;
-      allow create: if (request.resource.data.type == 'source'
-          || request.resource.data.type == 'partie_type'
-          || request.resource.data.type == 'ihala')
-        && request.resource.data.value is string
-        && request.resource.data.value.size() > 0
-        && request.resource.data.value.size() <= 200;
-      allow update, delete: if false;
+      allow create, update, delete: if false;
+    }
+
+    // ---------- sources en lecture seule (المصدر : table importée, « + جديد » non persisté) ----------
+    match /sources/{id} {
+      allow read: if true;
+      allow create, update, delete: if false;
+    }
+
+    // ---------- recipients en lecture seule (الموجَّه إليه : import `users`, « + جديد » non persisté) ----------
+    match /recipients/{id} {
+      allow read: if true;
+      allow create, update, delete: if false;
     }
 
     // ---------- tout le reste : refusé ----------

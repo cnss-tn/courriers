@@ -13,7 +13,7 @@ export interface Courrier {
   /** Matricule + raison sociale dans le même champ */
   identitePartie: string;
   objet: string;
-  /** Contrôleur de la direction ou « Archive » */
+  /** Contrôleur de la direction ou « الأرشيف » */
   destinataire: string;
   dateReception: string; // YYYY-MM-DD
   ihalaIla: string;
@@ -44,7 +44,7 @@ export interface CourrierDraft {
   jihaReponse: string;
 }
 
-export const ARCHIVE_DESTINATAIRE = 'Archive';
+export const ARCHIVE_DESTINATAIRE = 'الأرشيف';
 
 export function blankCourrierDraft(today: string): CourrierDraft {
   return {
@@ -56,7 +56,7 @@ export function blankCourrierDraft(today: string): CourrierDraft {
     destinataire: '',
     dateReception: today,
     ihalaIla: '',
-    reponseRecue: 'لا',
+    reponseRecue: '' as ReponseRecue, // défaut vide -> affiche « اختر... », choix obligatoire
     dateReponseRecue: '',
     reponseFinale: '',
     dateReponseFinale: '',
@@ -97,11 +97,18 @@ export function validateCourrierDraft(d: CourrierDraft): string[] {
   for (const [v, msg] of required) {
     if (!String(v || '').trim()) errors.push(msg);
   }
-  if (d.reponseRecue !== 'نعم' && d.reponseRecue !== 'لا') {
+  if (!d.reponseRecue) {
+    errors.push('يرجى اختيار الإجابة الواردة');
+  } else if (d.reponseRecue !== 'نعم' && d.reponseRecue !== 'لا') {
     errors.push('قيمة الرد المستلم غير صالحة');
   }
   if (d.reponseRecue === 'نعم' && !String(d.dateReponseRecue || '').trim()) {
     errors.push('يرجى إدخال تاريخ الإجابة الواردة (الإجابة نعم)');
   }
   return errors;
+}
+
+/** Affichage du الرقم sur 5 chiffres : 1 -> « 00001 » (jamais de #). */
+export function formatSeq(seq: number | string): string {
+  return String(seq ?? '').padStart(5, '0');
 }

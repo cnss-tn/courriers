@@ -13,7 +13,7 @@
           </div>
 
           @if (error()) {
-            <div class="alert alert-danger" role="alert">{{ error() }}</div>
+            <div class="app-alert" role="alert">{{ error() }}</div>
           }
 
           <form (ngSubmit)="submit()" novalidate>
@@ -21,6 +21,7 @@
               <div class="mb-3">
                 <label for="login-matricule" class="form-label">رقم التسجيل</label>
                 <input
+                  #matriculeInput
                   type="text" class="form-control" id="login-matricule" name="matricule"
                   [(ngModel)]="matricule" autocomplete="username" inputmode="numeric" required />
               </div>
@@ -33,7 +34,7 @@
               <button type="submit" class="btn btn-primary btn-sm mt-4 mb-3 d-block mx-auto" style="min-width: 10rem" [disabled]="loading()">
                 <span>تسجيل الدخول</span>
                 @if (loading()) {
-                  <span class="spinner-border spinner-border-sm ms-2" role="status" aria-hidden="true"></span>
+                  <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
                 }
               </button>
             </div>
@@ -43,3 +44,4 @@
     </div>
   </div>
 </main>
+<app-footer></app-footer>

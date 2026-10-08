@@ -7,6 +7,8 @@
     "build": "ng build",
     "seed:admin": "node scripts/seed-admin.mjs",
     "setup:firebase": "node scripts/fetch-web-config.mjs",
+    "import:recipients": "node scripts/import-recipients.mjs",
+    "add:recipient": "node scripts/add-recipient.mjs",
     "watch": "ng build --watch --configuration development"
   },
   "prettier": {
@@ -23,14 +25,17 @@
   },
   "private": true,
   "dependencies": {
+    "@angular/animations": "^20.3.33",
+    "@angular/cdk": "^20.2.14",
     "@angular/common": "^20.3.0",
     "@angular/compiler": "^20.3.0",
     "@angular/core": "^20.3.0",
     "@angular/forms": "^20.3.0",
+    "@angular/material": "^20.2.14",
     "@angular/platform-browser": "^20.3.0",
     "@angular/router": "^20.3.0",
-    "@ng-bootstrap/ng-bootstrap": "^19.0.1",
     "bootstrap": "^5.3.8",
+    "exceljs": "^4.4.0",
     "firebase": "^12.19.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
@@ -40,7 +45,9 @@
     "@angular/build": "^20.3.37",
     "@angular/cli": "^20.3.37",
     "@angular/compiler-cli": "^20.3.0",
+    "@types/exceljs": "^0.5.3",
     "firebase-admin": "^14.5.0",
-    "typescript": "~5.9.2"
+    "typescript": "~5.9.2",
+    "xlsx": "^0.18.5"
   }
 }

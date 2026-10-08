@@ -2,9 +2,9 @@
    textareas auto-ajustés, pied collant avec les actions. */
 .cx-form { padding: 0.6rem 0.9rem; }
 /* Espacement marqué entre champs pour les distinguer visuellement */
-.cx-form .mb-2 { margin-bottom: 1.3rem !important; }
-.cx-form .row.g-2 { --bs-gutter-x: 1.3rem; }
-.cx-form app-custom-select { display: block; margin-bottom: 1.3rem; }
+.cx-form .mb-2 { margin-bottom: 1.8rem !important; margin-inline: 3rem; }
+.cx-form .row.g-2 { --bs-gutter-x: 1.8rem; margin-inline: 2rem; }
+.cx-form app-custom-select { display: block; margin-bottom: 1.8rem; margin-inline: 3rem; }
 .cx-form .form-label {
   font-size: 0.72rem;
   font-weight: 600;
@@ -12,30 +12,29 @@
   margin-bottom: 0.2rem;
 }
 .cx-form .form-control-sm {
-  font-size: 0.82rem;
+  font-size: 0.75rem;
   border-radius: 10px;
+  padding: 0.2rem 0.55rem;
 }
+.cx-form textarea { resize: none; }
+/* Champs affinés : dropdowns et dates à la même hauteur compacte */
+.cx-form .dd-toggle { min-height: 28px; font-size: 0.72rem; }
+.cx-form .di-input { font-size: 0.72rem; }
+.cx-footer.cx-footer-center { justify-content: center; }
+.cx-footer.cx-footer-center .btn { min-width: 9rem; border-radius: 12px; }
 .cx-two {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0.9rem;
   align-items: start;
+  max-width: 52em;
+  margin-inline: auto;
 }
 .cx-part { min-width: 0; }
 /* Séparateur gris clair entre les deux colonnes (côté gauche de la 1ère en RTL) */
 .cx-part:first-child {
   border-inline-end: 1px solid #e9ecef;
   padding-inline-end: 0.9rem;
-}
-.cx-seq {
-  font-size: 0.8rem;
-  padding: 0.35rem;
-  margin-bottom: 0.5rem;
-}
-.cx-alert {
-  font-size: 0.8rem;
-  padding: 0.4rem 0.6rem;
-  margin-bottom: 0.5rem;
 }
 /* custom-select imbriqué : compacter ses espacements internes */
 .cx-form app-custom-select .mb-3 { margin-bottom: 0 !important; }

@@ -1,35 +1,28 @@
 <form [formGroup]="form" (ngSubmit)="submit()" novalidate class="cx-form">
-  @if (isEdit) {
-    <div class="alert alert-light border text-center cx-seq">
-      الرقم : <strong dir="ltr">#{{ courrier?.seq }}</strong>
-    </div>
-  }
-  @if (clientError()) { <div class="alert alert-danger cx-alert">{{ clientError() }}</div> }
-  @if (serverError) { <div class="alert alert-danger cx-alert">{{ serverError }}</div> }
+  <div #alertBox>
+    @if (clientError()) { <div class="app-alert">{{ clientError() }}</div> }
+    @if (serverError) { <div class="app-alert">{{ serverError }}</div> }
+  </div>
 
   <div class="cx-two">
     <div class="cx-part">
-      <div class="row g-2 mb-2">
-        <div class="col-6">
-          <label class="form-label">تاريخ الوصول *</label>
-          <app-date-input [value]="form.controls['dateArrivee'].value" (valueChange)="form.patchValue({ dateArrivee: $event })" [clearable]="false"></app-date-input>
-        </div>
-        <div class="col-6">
-          <label class="form-label">تاريخ الاستلام *</label>
-          <app-date-input [value]="form.controls['dateReception'].value" (valueChange)="form.patchValue({ dateReception: $event })" [clearable]="false"></app-date-input>
-        </div>
+      <div class="mb-2">
+          <label class="form-label">تاريخ الوصول <span class="req">*</span></label>
+        <app-date-input [value]="form.controls['dateArrivee'].value" (valueChange)="form.patchValue({ dateArrivee: $event })" [clearable]="false"></app-date-input>
       </div>
 
       <app-custom-select
-        label="المصدر *"
+        label='المصدر <span class="req">*</span>'
         [options]="ctrl.refSources()"
+        [meta]="ctrl.refSourcesMeta()"
+        [widePanel]="true"
         [value]="form.controls['source'].value"
         (valueChange)="form.patchValue({ source: $event })"
         (newValue)="onNewRef('source', $event)"
       ></app-custom-select>
 
       <app-custom-select
-        label="نوع الطرف المعني *"
+        label='نوع الطرف المعني <span class="req">*</span>'
         [options]="ctrl.refPartieTypes()"
         [value]="form.controls['typePartie'].value"
         (valueChange)="form.patchValue({ typePartie: $event })"
@@ -37,30 +30,36 @@
       ></app-custom-select>
 
       <div class="mb-2">
-        <label class="form-label">هوية الطرف المعني *</label>
-        <input type="text" class="form-control form-control-sm" formControlName="identitePartie" placeholder="مثال: 1234567 — الشركة التونسية ..." />
+        <label class="form-label">هوية الطرف المعني <span class="req">*</span></label>
+        <textarea class="form-control form-control-sm" rows="2" formControlName="identitePartie" appAutogrow></textarea>
       </div>
 
       <div class="mb-2">
-        <label class="form-label">الموضوع *</label>
-        <textarea class="form-control form-control-sm" rows="2" formControlName="objet" appAutogrow></textarea>
+        <label class="form-label">الموجَّه إليه <span class="req">*</span></label>
+        <app-dropdown
+          [options]="ctrl.destinataireOptions()"
+          [value]="form.controls['destinataire'].value"
+          (valueChange)="form.patchValue({ destinataire: $event })"
+          specialLast="الأرشيف"
+        ></app-dropdown>
       </div>
     </div>
 
     <div class="cx-part">
       <div class="mb-2">
-        <label class="form-label">الموجَّه إليه *</label>
-        <app-dropdown
-          [options]="ctrl.destinataireOptions()"
-          [value]="form.controls['destinataire'].value"
-          (valueChange)="form.patchValue({ destinataire: $event })"
-          specialLast="Archive"
-        ></app-dropdown>
+        <label class="form-label">تاريخ الاستلام <span class="req">*</span></label>
+        <app-date-input [value]="form.controls['dateReception'].value" (valueChange)="form.patchValue({ dateReception: $event })" [clearable]="false"></app-date-input>
+      </div>
+
+      <div class="mb-2">
+        <label class="form-label">الموضوع <span class="req">*</span></label>
+        <textarea class="form-control form-control-sm" rows="2" formControlName="objet" appAutogrow></textarea>
       </div>
 
       <app-custom-select
         label="إحالة إلى"
         [options]="ctrl.refIhala()"
+        [meta]="ctrl.refSourcesMeta()"
         [value]="form.controls['ihalaIla'].value"
         (valueChange)="form.patchValue({ ihalaIla: $event })"
         (newValue)="onNewRef('ihala', $event)"
@@ -68,7 +67,7 @@
 
       <div class="row g-2 mb-2">
         <div class="col-6">
-          <label class="form-label">الإجابة الواردة *</label>
+          <label class="form-label">الإجابة الواردة <span class="req">*</span></label>
           <app-dropdown
             [options]="reponseOptions"
             [value]="form.controls['reponseRecue'].value"
@@ -94,17 +93,17 @@
         </div>
         <div class="col-6">
           <label class="form-label">جهة الرد النهائي</label>
-          <input type="text" class="form-control form-control-sm" formControlName="jihaReponse" />
+          <textarea class="form-control form-control-sm" rows="1" formControlName="jihaReponse"></textarea>
         </div>
       </div>
     </div>
   </div>
 
-  <div class="cx-footer">
+  <div class="cx-footer cx-footer-center">
     <button type="button" class="btn btn-outline-secondary btn-sm" (click)="cancelled.emit()">إلغاء</button>
-    <button type="submit" class="btn btn-primary btn-sm flex-grow-1" [disabled]="saving()">
+    <button type="submit" class="btn btn-primary btn-sm" [disabled]="saving()">
       <span>{{ isEdit ? 'حفظ التعديلات' : 'إضافة المراسلة' }}</span>
-      @if (saving()) { <span class="spinner-border spinner-border-sm ms-2"></span> }
+      @if (saving()) { <span class="spinner-border spinner-border-sm me-2"></span> }
     </button>
   </div>
 </form>

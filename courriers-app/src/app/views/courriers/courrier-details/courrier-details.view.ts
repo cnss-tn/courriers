@@ -1,11 +1,12 @@
 import { Component, Input } from '@angular/core';
-import { Courrier } from '../../../models/courrier.model';
+import { Courrier, formatSeq } from '../../../models/courrier.model';
 
 // VIEW — fiche détail en lecture seule (aucune logique).
 @Component({
   selector: 'app-courrier-details',
   standalone: true,
   templateUrl: './courrier-details.view.html',
+  styleUrl: './courrier-details.view.css',
 })
 export class CourrierDetailsView {
   @Input({ required: true }) courrier!: Courrier;
@@ -13,7 +14,7 @@ export class CourrierDetailsView {
   rows(): Array<[string, string]> {
     const c = this.courrier;
     return [
-      ['التسلسل الرقمي', `#${c.seq}`],
+      ['الرقم', formatSeq(c.seq)],
       ['تاريخ الوصول', c.dateArrivee],
       ['المصدر', c.source],
       ['نوع الطرف المعني', c.typePartie],
