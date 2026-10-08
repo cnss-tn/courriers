@@ -6,7 +6,7 @@ import { AppUser } from '../models/user.model';
 const COL = 'recipients';
 
 /**
- * Personnes الموجَّه إليه : table dédiée (remplie via `npm run import-recipients`),
+ * Personnes الموجَّه إليه : table dédiée (lecture seule),
  * doc id `Matricule-FR_Name`, champs { Matricule, FR_Name, AR_Name } uniquement.
  * Tri par matricule croissant (الأرشيف ajouté en dernier côté contrôleur).
  */

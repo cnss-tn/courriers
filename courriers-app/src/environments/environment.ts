@@ -1,5 +1,5 @@
-// Config Firebase générée automatiquement par "npm run setup:firebase"
-// (Firebase Management API + compte de service de needs/). Ne pas éditer à la main.
+// Config Firebase Web du projet courriers-e94e1. Ne pas éditer à la main
+// (console Firebase > Project settings > General > Web app).
 export const environment = {
   production: false,
   firebase: {

@@ -9,36 +9,23 @@ registre des courriers + popup de création/édition, filtres, pagination, expor
 - Node 20+ , npm
 - Projet Firebase : **courriers-e94e1**
 
-## 2) Clé Web API (automatique via `needs/`)
+## 2) Config Web Firebase
 
-Le fichier service-account de `needs/` sert à récupérer la config Web **sans copier-coller** :
-
-```bash
-npm run setup:firebase
-```
-
-Le script lit la clé de `needs/`, interroge la Firebase Management API
-et remplit `src/environments/environment.ts` (`apiKey`, `appId`...).
+`src/environments/environment.ts` contient déjà la config Web (`apiKey`, `appId`...).
 
 Repli manuel si besoin : console Firebase > Project settings > General >
 Web app > copier `apiKey` dans `src/environments/environment.ts`.
 
-Publiez aussi `firestore.rules` dans Firebase Console > Firestore > Rules.
+Règles Firestore : déjà publiées (console Firebase > Firestore > Rules).
 
-## 3) Créer le premier admin
-
-```bash
-npm run seed:admin -- 1000 "ChangeMe123" "مدير النظام" "Admin"
-```
-
-## 4) Lancer / builder
+## 3) Lancer / builder
 
 ```bash
 npm start          # http://localhost:4200
 npm run build      # dist/ -> déployable (Vercel / Netlify / GitHub Pages)
 ```
 
-## 5) Structure MVC (découpage anti-répétition)
+## 4) Structure MVC (découpage anti-répétition)
 
 ```
 src/app/
@@ -59,26 +46,25 @@ src/app/
 Règle d'or : **la vue affiche et émet, le contrôleur décide et persiste,
 le modèle valide.** Détails pédagogiques : voir `docs/MVC.md`.
 
-## 6) Collections Firestore
+## 5) Collections Firestore
 
 | Collection     | Contenu |
 | -------------- | ------- |
 | `users`        | Matricule, FR_Name, AR_Name, Pw (sha256) — login uniquement, rien d'autre |
-| `recipients`   | id `Matricule-FR_Name`, champs { Matricule, FR_Name, AR_Name } (الموجَّه إليه : import `users` via `npm run import:recipients`) |
+| `recipients`   | id `Matricule-FR_Name`, champs { Matricule, FR_Name, AR_Name } (الموجَّه إليه, lecture seule) |
 | `sessions`     | id `matricule-frName` -> { matricule, createdAt, expiresAt } (heures lisibles Timestamp, 1 session live / user, expire à 19h00 ; docs expirés supprimés au logout, à l'expiration et au démarrage/login) |
 | `courriers`    | seq, dateArrivee, source, typePartie, identitePartie, objet, destinataire, dateReception, ihalaIla, reponseRecue, dateReponseRecue, reponseFinale, dateReponseFinale, jihaReponse, createdAt/By, updatedAt |
 | `relevant_part_type` | doc id = valeur, champ { name } (نوع الطرف المعني : مؤجر, lecture seule) |
-| `sources`      | id `code-name`, champs { code, name } (المصدر : import `Sources.xlsx`, lecture seule) |
-| `counters/courriers` | { lastSeq } (séquence 1..n via transaction) |
+| `sources`      | id `code-name`, champs { code, name } (المصدر, lecture seule) |
 
-## 7) Règles de gestion
+## 6) Règles de gestion
 
 - **Séquence** attribuée automatiquement à la création (jamais réutilisée après suppression).
 - **Destinataire** = tous les users (« matricule + nom arabe », ex. 126359 أحمد الزكراوي) + **« الأرشيف » toujours en dernier**.
-- **المصدر / إحالة إلى** : bureaux/directions de la table `sources` (import `Sources.xlsx`) ; **نوع الطرف** : table `relevant_part_type` ; **« + جديد »** partout : valeur libre utilisée telle quelle, jamais persistée.
+- **المصدر / إحالة إلى** : bureaux/directions de la table `sources` ; **نوع الطرف** : table `relevant_part_type` ; **« + جديد »** partout : valeur libre utilisée telle quelle, jamais persistée.
 - Si **« الإجابة الواردة = نعم »** alors تاريخ الإجابة الواردة requis.
 
-## 8) Déploiement GitHub Pages
+## 7) Déploiement GitHub Pages
 
 Déploiement automatique via `.github/workflows/deploy-pages.yml` (à la racine du repo) :
 push sur `main` → build prod (`--base-href /courriers/`) → publication.
