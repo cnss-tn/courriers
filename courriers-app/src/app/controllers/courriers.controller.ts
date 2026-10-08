@@ -43,7 +43,7 @@ export class CourriersController {
   private recipients = inject(RecipientsService);
   private auth = inject(AuthService);
 
-  readonly pageSize = 5;
+  readonly pageSize = 6;
 
   // --- état ---
   readonly all = signal<Courrier[]>([]);
@@ -234,6 +234,8 @@ export class CourriersController {
     try {
       await this.courriers.remove(c.id);
       await this.reload();
+      // Après suppression : réinitialise les filtres pour afficher les courriers restants.
+      this.resetFilters();
       return null;
     } catch {
       return 'تعذر حذف المراسلة';

@@ -61,6 +61,16 @@
 .user-action-btn { border-radius: 10px; font-size: 0.72rem; font-weight: 700; padding: 0.2rem 0.6rem; cursor: pointer; border: 1px solid; background: #fff; white-space: nowrap; }
 /* Boutons du pied du popup détail : taille de police d'origine, largeur réduite */
 .details-wrap .popup-actions .btn { font-weight: 700; padding: 0.25rem 0.1rem; border-radius: 10px; }
+/* حذف du popup : mêmes couleurs que celui du tableau (fond blanc, texte rouge),
+   y compris au survol/clic (pas d'inversion Bootstrap en fond rouge). */
+.details-wrap .popup-actions .btn-outline-danger,
+.details-wrap .popup-actions .btn-outline-danger:hover,
+.details-wrap .popup-actions .btn-outline-danger:active {
+  background: #fff;
+  color: #dc3545;
+  border-color: rgba(220, 53, 69, 0.55);
+}
+.details-wrap .popup-actions .btn-outline-danger:hover { filter: brightness(0.95); }
 .user-action-view { color: #0d6efd; border-color: rgba(13,110,253,0.35); }
 .user-action-edit { color: #b8860b; border-color: rgba(184,134,11,0.35); }
 .user-action-delete { color: #dc3545; border-color: rgba(220,53,69,0.35); }
