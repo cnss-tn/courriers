@@ -1,14 +1,22 @@
 .courriers-scroll { overflow-x: auto; min-height: 220px; }
+/* En-tête collant (nécessaire dès que le tableau défile en interne) */
+.courriers-scroll thead th { position: sticky; top: 0; z-index: 2; }
 .courriers-scroll table { min-width: 1740px; font-size: 0.75rem; }
-.courriers-scroll thead th { padding: 0.5rem 0.35rem; white-space: nowrap; }
+.courriers-scroll thead th { padding: 0.4rem 0.35rem; white-space: nowrap; }
+/* Tri façon campagnes : en-têtes cliquables + flèche ▼/▲ */
+.sort-trigger { cursor: pointer; user-select: none; }
+.sort-trigger:hover { color: var(--cp-accent); }
+.sort-indicator { color: var(--cp-accent); font-size: 0.62rem; margin-inline-start: 0.2rem; }
 /* Modern dividers : filet accent sous l'en-tête + séparateurs fins entre colonnes */
 .courriers-scroll thead th { border-bottom: 2px solid var(--cp-accent) !important; }
-.courriers-scroll thead th + th,
-.courriers-scroll tbody td + td { border-inline-start: 1px solid rgba(11, 90, 110, 0.1); }
+.courriers-scroll thead th,
+.courriers-scroll tbody td { border-inline-start: 1px solid rgba(11, 90, 110, 0.1); }
 .courriers-scroll tbody tr { transition: background-color 0.15s ease; }
-.courriers-scroll tbody td { padding: 0.32rem 0.35rem; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.courriers-scroll tbody td { padding: 0.4rem 0.35rem; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .courriers-scroll .badge { font-size: 0.66rem; white-space: nowrap; }
 .courrier-row { cursor: pointer; }
+/* Tiret des champs vides : taille/graisse uniformes dans tout le tableau */
+.empty-dash { font-size: 0.75rem; font-weight: 400; }
 .seq-cell {
   font-weight: 500;
   background: linear-gradient(135deg, #048f40 0%, #93d89a 100%);
@@ -19,19 +27,6 @@
 .courriers-scroll tbody td.text-truncate-cell { max-width: 170px; }
 .courriers-scroll tbody td.text-truncate-cell--wide { max-width: 340px; }
 .courriers-card { max-width: 100%; margin-inline: auto; }
-.page-main-title {
-  font-family: 'Tajawal', 'Segoe UI', sans-serif;
-  font-size: 1.45rem;
-  font-weight: 800;
-  letter-spacing: 0;
-  background: linear-gradient(135deg, var(--cp-ink) 30%, var(--cp-accent));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  padding-bottom: 0.3rem;
-  border-bottom: 3px solid transparent;
-  border-image: linear-gradient(90deg, var(--cp-accent), var(--cp-accent-lime), transparent) 1;
-}
 .add-btn-top {
   position: fixed; top: 2em; left: 50%; transform: translateX(-50%); z-index: 100;
   font-size: 1.15rem; padding: 0.7rem 2.6rem;
@@ -49,6 +44,13 @@
 /* Filtres : dropdown + ✕ unique à gauche (à gauche en RTL) */
 .filter-dd-row { display: flex; align-items: center; gap: 0.4rem; }
 .filter-dd-row app-dropdown { flex: 1 1 auto; min-width: 0; }
+/* Pastilles bleues séparatrices dans le libellé du champ بحث */
+.lbl-dot {
+  display: inline-block; width: 0.35rem; height: 0.35rem; border-radius: 50%;
+  background: var(--cp-accent); margin-inline: 0.15rem; vertical-align: middle;
+}
+/* Périmètre de recherche réduit (le mot بحث garde sa taille) */
+.search-scope { font-size: 0.75em; }
 /* Pied collant du popup détail, comme celui du formulaire */
 .details-wrap .popup-actions {
   position: sticky;

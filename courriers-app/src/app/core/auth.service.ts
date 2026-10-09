@@ -8,9 +8,10 @@ import {
   limit,
   query,
   setDoc,
+  updateDoc,
   where,
 } from 'firebase/firestore';
-import { passwordMatches } from './crypto';
+import { passwordHash, passwordMatches } from './crypto';
 import { FirebaseService } from './firebase.service';
 import { computeSessionExpiry } from './session-policy';
 import { AppUser } from '../models/user.model';
@@ -255,6 +256,25 @@ export class AuthService {
     this.armTimer();
     void this.purgeExpiredSessions();
     return full;
+  }
+
+  /**
+   * Changement de mot de passe (page mon-compte) : vérifie l'ancien
+   * puis écrit le nouveau hash `Pw`. Erreurs : not_authenticated,
+   * network_error, user_not_found, invalid_old_password.
+   */
+  async changePassword(oldPw: string, newPw: string): Promise<void> {
+    const u = this._user();
+    if (!u?.matricule) throw new Error('not_authenticated');
+    const mat = String(u.matricule).trim();
+    await this.ensureOnline();
+    const found = await this.findUserDoc(mat);
+    if (!found) throw new Error('user_not_found');
+    const storedPw = String(found.data['Pw'] ?? found.data['pw'] ?? found.data['password'] ?? '');
+    if (!(await passwordMatches(mat, oldPw, storedPw))) throw new Error('invalid_old_password');
+    await updateDoc(doc(this.fb.firestore(), COL_USERS, found.id), {
+      Pw: await passwordHash(mat, newPw),
+    });
   }
 
   logout(): void {

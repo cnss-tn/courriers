@@ -13,6 +13,9 @@ export class AuthController {
   /** Nom arabe de l'utilisateur connecté (affiché près du logout). */
   readonly arName = computed(() => (this.auth.currentUser()?.arName || '').trim());
 
+  /** Utilisateur connecté (matricule, noms) pour la page mon-compte. */
+  readonly user = this.auth.currentUser;
+
   /** @returns message d'erreur (arabe) ou null si succès (navigation effectuée). */
   async login(matricule: string, pw: string): Promise<string | null> {
     if (!matricule.trim() || !pw) return 'يرجى إدخال رقم التسجيل وكلمة المرور';
@@ -46,5 +49,31 @@ export class AuthController {
 
   logout(): void {
     this.auth.logout();
+  }
+
+  /**
+   * Changement de mot de passe (mêmes règles que campagnes).
+   * @returns message d'erreur (arabe) ou null si succès.
+   */
+  async changePassword(oldPw: string, newPw: string, newPw2: string): Promise<string | null> {
+    if (!oldPw.trim() || !newPw.trim() || !newPw2.trim()) return 'الرجاء ملء جميع الحقول';
+    if (newPw !== newPw2) return 'كلمتا المرور الجديدتان غير متطابقتين';
+    if (newPw.trim().length < 4) return 'كلمة المرور الجديدة يجب أن تكون على الأقل 4 أحرف';
+    const mat = (this.auth.currentUser()?.matricule || '').trim();
+    if (mat && newPw.trim() === mat)
+      return 'كلمة المرور الجديدة لا يجب أن تكون نفس رقم التسجيل (المعرف)';
+    if (newPw.trim() === oldPw.trim()) return 'كلمة المرور الجديدة يجب أن تكون مختلفة عن القديمة';
+    if (typeof navigator !== 'undefined' && navigator.onLine === false)
+      return 'لا يوجد اتصال بالإنترنت';
+    try {
+      await this.auth.changePassword(oldPw, newPw);
+      return null;
+    } catch (e: unknown) {
+      const code = e instanceof Error ? e.message : '';
+      if (code === 'invalid_old_password') return 'كلمة المرور القديمة غير صحيحة';
+      if (code === 'network_error' || /network|offline|failed to fetch|abort/i.test(code))
+        return 'لا يوجد اتصال بالإنترنت';
+      return 'حدث خطأ أثناء تغيير كلمة المرور. حاول مرة أخرى.';
+    }
   }
 }

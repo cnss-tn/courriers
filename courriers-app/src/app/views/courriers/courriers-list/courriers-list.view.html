@@ -3,7 +3,7 @@
   <div class="col-12 mt-0">
     <div class="card card-custom card-composed courriers-card h-100">
       <div class="card-composed-accent card-composed-accent--secondary" aria-hidden="true"></div>
-      <div class="card-composed-body p-4 p-lg-4 d-flex flex-column">
+      <div class="card-composed-body p-3 p-lg-3 d-flex flex-column">
         <div class="composed-card-head mb-1">
           <span class="composed-card-icon composed-card-icon--table" aria-hidden="true"></span>
           <div class="w-100">
@@ -24,7 +24,7 @@
             <div class="results-filters-section results-filters-section--primary">
               <div class="results-filters-row">
                 <div class="results-filter-compact results-filter-compact--search">
-                  <label class="form-label mb-1">بحث (رقم / هوية / موضوع / رد نهائي / جهة الرد)</label>
+                  <label class="form-label mb-1">بحث <span class="search-scope">(رقم <span class="lbl-dot"></span> هوية <span class="lbl-dot"></span> موضوع <span class="lbl-dot"></span> رد نهائي <span class="lbl-dot"></span> جهة الرد)</span></label>
                   <input type="text" class="form-control form-control-sm" [ngModel]="ctrl.fSearch()" (ngModelChange)="ctrl.setFilter({ search: $event })" placeholder="..." />
                 </div>
                 <div class="results-filter-compact results-filter-autofit" [style.width]="filterWidth(ctrl.refSources(), true, 220)">
@@ -95,8 +95,8 @@
             <table class="table table-hover align-middle composed-table mb-0 text-center" dir="rtl">
               <thead>
                 <tr>
-                  @for (h of ctrl.exportHeaders(); track h) {
-                    <th>{{ h }}</th>
+                  @for (col of ctrl.sortColumns; track col.key) {
+                    <th class="sort-trigger" (click)="ctrl.toggleSort(col.key)">{{ col.label }} <span class="sort-indicator">{{ ctrl.sortIcon(col.key) }}</span></th>
                   }
                   <th>إجراءات</th>
                 </tr>
@@ -117,14 +117,14 @@
                       <span class="badge" [class.badge-archive]="c.destinataire === 'الأرشيف'" [class.badge-dest]="c.destinataire !== 'الأرشيف'">{{ c.destinataire }}</span>
                     </td>
                     <td dir="ltr" class="text-nowrap"><small>{{ c.dateReception }}</small></td>
-                    <td>{{ c.ihalaIla || '—' }}</td>
+                    <td>@if (c.ihalaIla) { {{ c.ihalaIla }} } @else { <span class="empty-dash">-</span> }</td>
                     <td>
                       <span class="badge" [class.badge-yes]="c.reponseRecue === 'نعم'" [class.badge-no]="c.reponseRecue !== 'نعم'">{{ c.reponseRecue }}</span>
                     </td>
-                    <td dir="ltr" class="text-nowrap"><small>{{ c.dateReponseRecue || '—' }}</small></td>
-                    <td class="text-truncate-cell text-truncate-cell--wide">{{ c.reponseFinale || '—' }}</td>
-                    <td dir="ltr" class="text-nowrap"><small>{{ c.dateReponseFinale || '—' }}</small></td>
-                    <td>{{ c.jihaReponse || '—' }}</td>
+                    <td dir="ltr" class="text-nowrap">@if (c.dateReponseRecue) { <small>{{ c.dateReponseRecue }}</small> } @else { <span class="empty-dash">-</span> }</td>
+                    <td class="text-truncate-cell text-truncate-cell--wide">@if (c.reponseFinale) { {{ c.reponseFinale }} } @else { <span class="empty-dash">-</span> }</td>
+                    <td dir="ltr" class="text-nowrap">@if (c.dateReponseFinale) { <small>{{ c.dateReponseFinale }}</small> } @else { <span class="empty-dash">-</span> }</td>
+                    <td>@if (c.jihaReponse) { {{ c.jihaReponse }} } @else { <span class="empty-dash">-</span> }</td>
                     <td (click)="$event.stopPropagation()">
                       <div class="row-actions">
                         <button type="button" class="user-action-btn user-action-view" (click)="details.set(c)">عرض</button>

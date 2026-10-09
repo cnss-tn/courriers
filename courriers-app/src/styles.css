@@ -69,11 +69,31 @@ app-root { display: flex; flex-direction: column; min-height: 100vh; }
   position: fixed; top: 1.05rem; left: calc(1rem + 2.2rem + 0.5rem); z-index: 100;
   font-family: 'Tajawal', 'Segoe UI', sans-serif;
   font-weight: 600; font-size: 0.85rem; color: var(--cp-accent);
-  pointer-events: none;
+  text-decoration: none; cursor: pointer;
+  border: 1px solid rgba(14, 157, 181, 0.35); border-radius: 2em;
+  padding: 0.2rem 0.9rem; background: rgba(255, 255, 255, 0.75);
 }
+.page-user:hover { background: var(--cp-accent); color: #fff; }
+/* Sur mon-compte : le nom redevient un simple indicatif (style d'origine, non cliquable) */
+.page-user-plain {
+  border: none; background: transparent; box-shadow: none;
+  padding: 0; cursor: default; pointer-events: none;
+}
+.page-user-plain:hover { background: transparent; color: var(--cp-accent); }
+/* Bouton home haut-centre (visible quand mon-compte est affiché) : style + إضافة مراسلة */
+.page-home {
+  position: fixed; top: 0.7rem; left: 50%; transform: translateX(-50%); z-index: 100;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 2.2rem; height: 2.2rem; border-radius: 2em;
+  color: #fff; border: none;
+  background: linear-gradient(135deg, var(--cp-accent), var(--cp-accent-mid));
+  box-shadow: 0 4px 14px rgba(14,157,181,0.35);
+  cursor: pointer;
+}
+.page-home:hover { color: #fff; filter: brightness(0.95); }
 
 /* Contenu */
-.composed-main { position: relative; max-width: 100%; padding-top: 1.5rem; padding-bottom: 3.5rem; padding-inline: 1rem; margin-top: 6em; }
+.composed-main { position: relative; max-width: 100%; padding-top: 1.5rem; padding-bottom: 1.5rem; padding-inline: 1rem; margin-top: 6em; }
 .row.composed-bento { --bs-gutter-y: 0; }
 
 /* Cartes */
@@ -87,6 +107,20 @@ app-root { display: flex; flex-direction: column; min-height: 100vh; }
 .card-composed-accent { position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, var(--cp-accent), var(--cp-accent-mid), var(--cp-accent-lime)); opacity: 0.98; }
 .card-composed-accent--secondary { background: linear-gradient(90deg, var(--cp-accent-lime), var(--cp-accent-mid), var(--cp-accent)); }
 .card-composed-body { position: relative; z-index: 1; }
+/* Titre principal des cartes (registre, mon-compte) : dégradé encre→turquoise + filet */
+.page-main-title {
+  font-family: 'Tajawal', 'Segoe UI', sans-serif;
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  background: linear-gradient(135deg, var(--cp-ink) 30%, var(--cp-accent));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  padding-bottom: 0.3rem;
+  border-bottom: 3px solid transparent;
+  border-image: linear-gradient(90deg, var(--cp-accent), var(--cp-accent-lime), transparent) 1;
+}
 .composed-card-head { display: flex; align-items: center; gap: 1rem; }
 .composed-card-icon, .composed-card-icon--table {
   width: 2.75rem; height: 2.75rem; border-radius: 14px; flex-shrink: 0;
@@ -121,8 +155,8 @@ app-root { display: flex; flex-direction: column; min-height: 100vh; }
 .results-filter-autofit { flex: 0 0 auto; min-width: 0; max-width: none; }
 /* Options des dropdowns dans les filtres : texte réduit (spécificité renforcée vs styles composant) */
 .results-filters-row .results-filter-compact .dd-item { font-size: 0.72rem; padding: 0.35rem 0.6rem; }
-/* Bouton fermé des dropdowns dans les filtres : texte réduit */
-.results-filters-row .results-filter-compact .dd-toggle { font-size: 0.66rem; min-height: 28px; }
+/* Bouton fermé des dropdowns dans les filtres : texte réduit + centré verticalement */
+.results-filters-row .results-filter-compact .dd-toggle { font-size: 0.66rem; min-height: 28px; padding: 0.335rem 0.55rem; }
 .results-filters-row .results-filter-compact .dd-toggle-text,
 .results-filters-row .results-filter-compact .dd-text {
   white-space: nowrap;
@@ -171,9 +205,41 @@ app-root { display: flex; flex-direction: column; min-height: 100vh; }
   padding: 0.2rem;
   margin-bottom: 0.5rem;
 }
+/* Variante succès (ex. changement de mot de passe) */
+.app-alert--success { color: #048f40; }
 .form-control, .form-select { border-radius: 12px; border-color: var(--cp-border-strong); background-color: rgba(255,255,255,0.9); }
 .form-control:focus, .form-select:focus { border-color: var(--cp-accent); box-shadow: 0 0 0 3px var(--cp-focus-ring); }
 .btn-primary { border: none; border-radius: 12px; font-weight: 700; background: linear-gradient(135deg, var(--cp-accent), var(--cp-accent-mid), var(--cp-accent-2)); box-shadow: 0 4px 14px rgba(14,157,181,0.38); }
+/* Reflet poli périodique sur tous les boutons bleus + home (sens RTL : droite → gauche) */
+.btn-primary:not(:disabled):not(.add-btn-top) {
+  position: relative;
+  overflow: hidden;
+}
+/* Boutons fixes : gardent leur position, seul le masquage du reflet s'ajoute */
+.page-home,
+.add-btn-top {
+  overflow: hidden;
+}
+.btn-primary:not(:disabled)::after,
+.page-home::after {
+  content: '';
+  position: absolute; top: 0; left: 0;
+  width: 45%; height: 100%;
+  background: linear-gradient(105deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+  transform: translateX(350%) skewX(-20deg);
+  animation: btn-shine 5.75s ease-in-out -2s infinite;
+  pointer-events: none;
+}
+@keyframes btn-shine {
+  0%, 34.8% { transform: translateX(350%) skewX(-20deg); }
+  100% { transform: translateX(-150%) skewX(-20deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .btn-primary:not(:disabled)::after,
+  .page-home::after {
+    animation: none;
+  }
+}
 .archive-option { font-weight: 800; }
 
 /* Boutons d'action des tableaux (registre + users) */

@@ -15,6 +15,29 @@ import {
 // CONTROLLER — seul endroit autorisé à orchestrer les données des courriers.
 // Les vues se contentent de lire ces signals et d'appeler ces méthodes.
 
+/** Clés de tri du registre (une par colonne de données, comme l'app campagnes). */
+type CourrierSortKey =
+  | 'seq' | 'dateArrivee' | 'source' | 'typePartie' | 'identitePartie'
+  | 'objet' | 'destinataire' | 'dateReception' | 'ihalaIla' | 'reponseRecue'
+  | 'dateReponseRecue' | 'reponseFinale' | 'dateReponseFinale' | 'jihaReponse';
+
+const SORT_GETTERS: Record<CourrierSortKey, (c: Courrier) => string | number> = {
+  seq: (c) => c.seq,
+  dateArrivee: (c) => c.dateArrivee || '',
+  source: (c) => c.source || '',
+  typePartie: (c) => c.typePartie || '',
+  identitePartie: (c) => c.identitePartie || '',
+  objet: (c) => c.objet || '',
+  destinataire: (c) => c.destinataire || '',
+  dateReception: (c) => c.dateReception || '',
+  ihalaIla: (c) => c.ihalaIla || '',
+  reponseRecue: (c) => c.reponseRecue || '',
+  dateReponseRecue: (c) => c.dateReponseRecue || '',
+  reponseFinale: (c) => c.reponseFinale || '',
+  dateReponseFinale: (c) => c.dateReponseFinale || '',
+  jihaReponse: (c) => c.jihaReponse || '',
+};
+
 /** Mois (noms tunisiens) pour les filtres شهر تاريخ الوصول / شهر تاريخ الاستلام. */
 const MONTHS: Array<{ n: string; label: string }> = [
   { n: '01', label: 'جانفي' },
@@ -61,6 +84,26 @@ export class CourriersController {
   readonly fMonthArrivee = signal('');
   readonly fMonthReception = signal('');
   readonly page = signal(1);
+  /** Tri du registre (comme campagnes : clic = croissant, re-clic = inverse, retour page 1). */
+  readonly sortKey = signal<CourrierSortKey>('seq');
+  readonly sortDir = signal<'asc' | 'desc'>('asc');
+  /** Colonnes triables : source unique des en-têtes du tableau (إجراءات exclu). */
+  readonly sortColumns: Array<{ key: CourrierSortKey; label: string }> = [
+    { key: 'seq', label: 'الرقم' },
+    { key: 'dateArrivee', label: 'تاريخ الوصول' },
+    { key: 'source', label: 'المصدر' },
+    { key: 'typePartie', label: 'نوع الطرف المعني' },
+    { key: 'identitePartie', label: 'هوية الطرف المعني' },
+    { key: 'objet', label: 'الموضوع' },
+    { key: 'destinataire', label: 'الموجَّه إليه' },
+    { key: 'dateReception', label: 'تاريخ الاستلام' },
+    { key: 'ihalaIla', label: 'إحالة إلى' },
+    { key: 'reponseRecue', label: 'الإجابة الواردة' },
+    { key: 'dateReponseRecue', label: 'تاريخ الإجابة الواردة' },
+    { key: 'reponseFinale', label: 'الرد النهائي' },
+    { key: 'dateReponseFinale', label: 'تاريخ الرد النهائي' },
+    { key: 'jihaReponse', label: 'جهة الرد النهائي' },
+  ];
   /** Libellés des mois pour les dropdowns des filtres. */
   readonly monthLabels = MONTHS.map((m) => m.label);
 
@@ -100,8 +143,37 @@ export class CourriersController {
 
   readonly slice = computed(() => {
     const start = (this.page() - 1) * this.pageSize;
-    return this.filtered().slice(start, start + this.pageSize);
+    return this.sorted().slice(start, start + this.pageSize);
   });
+
+  /** Lignes filtrées puis triées (le tri ne change pas le nombre de résultats). */
+  readonly sorted = computed(() => {
+    const dir = this.sortDir() === 'asc' ? 1 : -1;
+    const get = SORT_GETTERS[this.sortKey()];
+    return [...this.filtered()].sort((a, b) => {
+      const va = get(a);
+      const vb = get(b);
+      if (typeof va === 'number' && typeof vb === 'number') return (va - vb) * dir;
+      return String(va ?? '').localeCompare(String(vb ?? ''), 'ar') * dir;
+    });
+  });
+
+  /** Clic sur un en-tête : même colonne = inverse, autre colonne = croissant. */
+  toggleSort(key: CourrierSortKey): void {
+    if (this.sortKey() === key) {
+      this.sortDir.set(this.sortDir() === 'asc' ? 'desc' : 'asc');
+    } else {
+      this.sortKey.set(key);
+      this.sortDir.set('asc');
+    }
+    this.page.set(1);
+  }
+
+  /** Indicateur ▼/▲ comme l'app campagnes (▼ = croissant, ▲ = décroissant). */
+  sortIcon(key: CourrierSortKey): string {
+    if (this.sortKey() !== key) return '';
+    return this.sortDir() === 'asc' ? '▼' : '▲';
+  }
 
   readonly years = computed(() =>
     [...new Set(this.all().map((c) => (c.dateArrivee || '').slice(0, 4)).filter(Boolean))]
@@ -244,15 +316,11 @@ export class CourriersController {
 
   // --- exports (données brutes, le composant export-buttons s'occupe du format) ---
   exportHeaders(): string[] {
-    return [
-      'الرقم', 'تاريخ الوصول', 'المصدر', 'نوع الطرف المعني', 'هوية الطرف المعني',
-      'الموضوع', 'الموجَّه إليه', 'تاريخ الاستلام', 'إحالة إلى', 'الإجابة الواردة',
-      'تاريخ الإجابة الواردة', 'الرد النهائي', 'تاريخ الرد النهائي', 'جهة الرد النهائي',
-    ];
+    return this.sortColumns.map((c) => c.label);
   }
 
   exportRows(): string[][] {
-    return this.filtered().map((c) => [
+    return this.sorted().map((c) => [
       formatSeq(c.seq), c.dateArrivee, c.source, c.typePartie, c.identitePartie, c.objet,
       c.destinataire, c.dateReception, c.ihalaIla, c.reponseRecue, c.dateReponseRecue,
       c.reponseFinale, c.dateReponseFinale, c.jihaReponse,

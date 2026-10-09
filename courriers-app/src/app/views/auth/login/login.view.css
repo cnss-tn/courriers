@@ -11,3 +11,5 @@
 .login-card-accent { position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, #0e9db5, #06b6d4, #22d3ee); }
 .login-logo { border-radius: 50%; box-shadow: 0 2px 14px rgba(14, 157, 181, 0.18); }
 .login-shell .form-control { text-align: center; }
+/* Bouton تسجيل الدخول : même gabarit compact que تعديل du popup détails */
+.login-shell .btn { padding: 0.5rem 0.1rem; border-radius: 10px; }

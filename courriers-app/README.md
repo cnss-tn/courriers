@@ -35,6 +35,7 @@ src/app/
                    # toucher les services — état, filtres, CRUD, exports
   views/           # VIEW (dumb) : @Input/@Output uniquement, jamais de service
     auth/            login.view
+    account/         my-account.view (infos + changement mot de passe)
     courriers/       courriers-list.view + courrier-form.view + courrier-details.view
   core/            # infrastructure : firebase.service, auth.service,
                    # courriers/sources/recipients/relevant-part-types services, guards

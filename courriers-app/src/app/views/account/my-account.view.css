@@ -1,0 +1,41 @@
+.account-card { max-width: 860px; margin-inline: auto; }
+.account-card .card-composed-body { padding: 2.5rem 3rem; }
+.account-head { margin-bottom: 2.5rem; }
+/* Filet dégradé limité au texte, comme le titre du tableau (item à largeur du texte) */
+.account-head .page-main-title { display: inline-block; }
+.account-split { display: grid; grid-template-columns: 1fr 1fr; gap: 0; align-items: stretch; }
+.account-panel { min-width: 0; display: flex; flex-direction: column; }
+/* Séparateur fixe peint sur le 1er panneau : 1px, insensible au contenu */
+.account-panel:first-child { border-inline-end: 1px solid var(--cp-border); padding-inline-end: 1.5rem; }
+.account-panel:last-child { padding-inline-start: 1.5rem; }
+.account-panel-title {
+  font-weight: 800; font-size: 0.95rem; color: var(--cp-ink);
+  margin-bottom: 1rem; text-align: center;
+}
+/* Contenu sous le titre : centré verticalement par 2 espaceurs égaux
+   (avant + après), titres sur la même ligne */
+.account-panel-body { flex: 1 1 auto; display: flex; flex-direction: column; min-width: 0; }
+.account-spacer { flex: 1 1 0; min-height: 0; }
+/* Écart titre/contenu : 1.75rem sans alerte, 0 si l'alerte est affichée */
+.account-panel:last-child .account-panel-body { margin-top: 0; }
+.account-panel:last-child .account-panel-body.with-gap { margin-top: 1.75rem; }
+/* L'alerte ne doit jamais élargir le panneau ni le séparateur */
+.account-panel-body .app-alert { max-width: 100%; overflow-wrap: anywhere; font-size: 0.9rem; }
+.account-divider { opacity: 0.25; width: 1px; min-width: 1px; max-width: 1px; }
+.account-info-grid { display: grid; gap: 1.75rem; margin-top: 3rem; margin-bottom: auto; }
+.account-info-item { text-align: center; }
+.account-info-label { font-size: 0.72rem; font-weight: 700; color: var(--cp-muted); }
+.account-info-value { font-weight: 700; color: var(--cp-ink); }
+.account-panel .form-label { display: block; text-align: center; }
+/* Uniquement les inputs du changement de mot de passe : étroits, centrés, texte centré */
+.pw-input { max-width: 240px; margin-inline: auto; text-align: center; }
+.pw-submit { margin-top: 2.5rem !important; }
+/* Même gabarit que le bouton du formulaire (إضافة المراسلة) */
+.pw-submit .btn { min-width: 9rem; border-radius: 12px; padding-top: 0.45rem; padding-bottom: 0.45rem; }
+.change-password-loader { text-align: center; padding: 2rem 0; }
+@media (max-width: 768px) {
+  .account-split { grid-template-columns: 1fr; }
+  .account-panel:first-child { border-inline-end: none; padding-inline-end: 0; }
+  .account-panel:last-child { padding-inline-start: 0; }
+  .account-card .card-composed-body { padding: 1.5rem; }
+}
