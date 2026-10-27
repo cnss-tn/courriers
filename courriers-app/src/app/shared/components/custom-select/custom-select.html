@@ -30,9 +30,7 @@
       <button type="button" class="single-clear-x" (click)="onSingleClear()" [disabled]="disabled" title="مسح">✕</button>
     }
   </div>
-  @if (!customMode && !value) {
-    <div class="custom-select-actions">
-      <button type="button" class="btn-custom-activity-btn" (click)="openCustom()" [disabled]="disabled">+ جديد</button>
-    </div>
-  }
+  <div class="custom-select-actions">
+    <button type="button" class="btn-custom-activity-btn" (click)="openCustom()" [disabled]="disabled" [style.visibility]="(customMode || value) ? 'hidden' : 'visible'">+ جديد</button>
+  </div>
 </div>

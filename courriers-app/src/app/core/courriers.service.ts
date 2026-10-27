@@ -57,11 +57,9 @@ export class CourriersService {
 
   async update(id: string, patch: Partial<Courrier>): Promise<void> {
     const db = this.fb.firestore();
-    const ref = doc(db, COL, id);
-    const snap = await getDoc(ref);
-    if (!snap.exists()) throw new Error('not_found');
-    const { id: _omit, seq: _seq, ...rest } = { ...(snap.data() as Courrier), ...patch };
-    await setDoc(ref, { ...rest, updatedAt: Date.now() }, { merge: true });
+    // Écriture directe : `merge` préserve les champs non modifiés.
+    // (L'ancien getDoc de vérification doublait le temps d'enregistrement.)
+    await setDoc(doc(db, COL, id), { ...patch, updatedAt: Date.now() }, { merge: true });
   }
 
   async remove(id: string): Promise<void> {

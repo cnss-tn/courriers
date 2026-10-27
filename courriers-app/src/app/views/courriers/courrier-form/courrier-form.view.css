@@ -2,9 +2,10 @@
    textareas auto-ajustés, pied collant avec les actions. */
 .cx-form { padding: 0.6rem 0.9rem; }
 /* Espacement marqué entre champs pour les distinguer visuellement */
-.cx-form .mb-2 { margin-bottom: 1.8rem !important; margin-inline: 3rem; }
-.cx-form .row.g-2 { --bs-gutter-x: 1.8rem; margin-inline: 2rem; }
-.cx-form app-custom-select { display: block; margin-bottom: 1.8rem; margin-inline: 3rem; }
+.cx-form .mb-2 { margin-bottom: 0.9rem !important; margin-inline: 0.8rem; }
+.cx-part > .mb-2:first-child { margin-top: 0 !important; }
+.cx-form .row.g-2 { --bs-gutter-x: 1rem; margin-inline: 0.5rem; margin-top: 0; }
+.cx-form app-custom-select { display: block; margin-bottom: 0.9rem; margin-inline: 0.8rem; }
 .cx-form .form-label {
   font-size: 0.72rem;
   font-weight: 600;
@@ -22,19 +23,48 @@
 .cx-form .di-input { font-size: 0.72rem; }
 .cx-footer.cx-footer-center { justify-content: center; }
 .cx-footer.cx-footer-center .btn { min-width: 9rem; border-radius: 12px; }
+.results-export-toolbar .btn { padding: 0.08rem 0.25rem; font-size: 0.6rem; border-radius: 4px; line-height: 1; }
+.results-filter-actions .btn { padding: 0.08rem 0.25rem; font-size: 0.6rem; line-height: 1; }
 .cx-two {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.9rem;
-  align-items: start;
-  max-width: 52em;
+  grid-template-columns: 0.85fr 0.85fr 1fr;
+  gap: 1.2rem;
+  align-items: stretch;
+  max-width: 75em;
+  width: 100%;
   margin-inline: auto;
+  padding-bottom: 2rem;
 }
 .cx-part { min-width: 0; }
+.cx-form ::ng-deep .form-control:disabled,
+.cx-form ::ng-deep .form-control[disabled],
+.cx-form ::ng-deep app-date-input .di-input:disabled,
+.cx-form ::ng-deep app-date-input .di-input[disabled],
+.cx-form ::ng-deep app-dropdown .dd-toggle:disabled,
+.cx-form ::ng-deep app-dropdown .dd-toggle[disabled],
+.cx-form ::ng-deep app-custom-select .cs-field input:disabled,
+.cx-form ::ng-deep app-custom-select .cs-field input[disabled],
+.cx-form ::ng-deep textarea:disabled,
+.cx-form ::ng-deep textarea[disabled] {
+  background-color: #c5c6c7 !important;
+  color: #333 !important;
+}
+
+.cx-form .form-control { border-color: rgba(11, 90, 110, 0.14); }
+.cx-form ::ng-deep .di-input { border-color: rgba(11, 90, 110, 0.14); }
+.cx-form ::ng-deep .dd-toggle { border-color: rgba(11, 90, 110, 0.14); }
+.cx-form ::ng-deep .cs-field input { border-color: rgba(11, 90, 110, 0.14); }
 /* Séparateur gris clair entre les deux colonnes (côté gauche de la 1ère en RTL) */
-.cx-part:first-child {
+.cx-part {
+  padding-inline-start: 1.2rem;
+}
+.cx-part:not(:last-child) {
   border-inline-end: 1px solid #e9ecef;
-  padding-inline-end: 0.9rem;
+  padding-inline-end: 1.2rem;
+}
+.cx-part:last-child {
+  padding-inline-end: 1.2rem;
+  align-self: center;
 }
 /* custom-select imbriqué : compacter ses espacements internes */
 .cx-form app-custom-select .mb-3 { margin-bottom: 0 !important; }

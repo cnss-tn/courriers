@@ -1,4 +1,5 @@
-.account-card { max-width: 860px; margin-inline: auto; }
+.account-card { max-width: 860px; margin-inline: auto; margin-top: 2rem; }
+.account-card[_ngcontent-ng-c3873283541] { margin-top: 5rem; }
 .account-card .card-composed-body { padding: 2.5rem 3rem; }
 .account-head { margin-bottom: 2.5rem; }
 /* Filet dégradé limité au texte, comme le titre du tableau (item à largeur du texte) */

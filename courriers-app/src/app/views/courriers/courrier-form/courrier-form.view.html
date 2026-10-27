@@ -5,10 +5,11 @@
   </div>
 
   <div class="cx-two">
+    <!-- Colonne 1 -->
     <div class="cx-part">
       <div class="mb-2">
-          <label class="form-label">تاريخ الوصول <span class="req">*</span></label>
-        <app-date-input [value]="form.controls['dateArrivee'].value" (valueChange)="form.patchValue({ dateArrivee: $event })" [clearable]="false"></app-date-input>
+        <label class="form-label">تاريخ الوصول <span class="req">*</span></label>
+        <app-date-input [value]="form.controls['dateArrivee'].value" (valueChange)="form.patchValue({ dateArrivee: $event })" [clearable]="false" [disabled]="baseDisabled"></app-date-input>
       </div>
 
       <app-custom-select
@@ -17,6 +18,7 @@
         [meta]="ctrl.refSourcesMeta()"
         [widePanel]="true"
         [value]="form.controls['source'].value"
+        [disabled]="baseDisabled"
         (valueChange)="form.patchValue({ source: $event })"
         (newValue)="onNewRef('source', $event)"
       ></app-custom-select>
@@ -25,6 +27,7 @@
         label='نوع الطرف المعني <span class="req">*</span>'
         [options]="ctrl.refPartieTypes()"
         [value]="form.controls['typePartie'].value"
+        [disabled]="baseDisabled"
         (valueChange)="form.patchValue({ typePartie: $event })"
         (newValue)="onNewRef('partie_type', $event)"
       ></app-custom-select>
@@ -33,24 +36,10 @@
         <label class="form-label">هوية الطرف المعني <span class="req">*</span></label>
         <textarea class="form-control form-control-sm" rows="2" formControlName="identitePartie" appAutogrow></textarea>
       </div>
-
-      <div class="mb-2">
-        <label class="form-label">الموجَّه إليه <span class="req">*</span></label>
-        <app-dropdown
-          [options]="ctrl.destinataireOptions()"
-          [value]="form.controls['destinataire'].value"
-          (valueChange)="form.patchValue({ destinataire: $event })"
-          specialLast="الأرشيف"
-        ></app-dropdown>
-      </div>
     </div>
 
+    <!-- Colonne 2 -->
     <div class="cx-part">
-      <div class="mb-2">
-        <label class="form-label">تاريخ الاستلام <span class="req">*</span></label>
-        <app-date-input [value]="form.controls['dateReception'].value" (valueChange)="form.patchValue({ dateReception: $event })" [clearable]="false"></app-date-input>
-      </div>
-
       <div class="mb-2">
         <label class="form-label">الموضوع <span class="req">*</span></label>
         <textarea class="form-control form-control-sm" rows="2" formControlName="objet" appAutogrow></textarea>
@@ -61,10 +50,30 @@
         [options]="ctrl.refIhala()"
         [meta]="ctrl.refSourcesMeta()"
         [value]="form.controls['ihalaIla'].value"
+        [disabled]="baseDisabled"
         (valueChange)="form.patchValue({ ihalaIla: $event })"
         (newValue)="onNewRef('ihala', $event)"
       ></app-custom-select>
 
+      <div class="mb-2">
+        <label class="form-label">الموجَّه إليه <span class="req">*</span></label>
+        <app-dropdown
+          [options]="ctrl.destinataireOptions()"
+          [value]="form.controls['destinataire'].value"
+          [disabled]="baseDisabled"
+          (valueChange)="form.patchValue({ destinataire: $event })"
+          specialLast="الأرشيف"
+        ></app-dropdown>
+      </div>
+
+      <div class="mb-2">
+        <label class="form-label">تاريخ الاستلام <span class="req">*</span></label>
+        <app-date-input [value]="form.controls['dateReception'].value" (valueChange)="form.patchValue({ dateReception: $event })" [clearable]="false" [disabled]="baseDisabled"></app-date-input>
+      </div>
+    </div>
+
+    <!-- Colonne 3 -->
+    <div class="cx-part">
       <div class="row g-2 mb-2">
         <div class="col-6">
           <label class="form-label">الإجابة الواردة <span class="req">*</span></label>
@@ -72,12 +81,13 @@
             [options]="reponseOptions"
             [value]="form.controls['reponseRecue'].value"
             [searchable]="false"
+            [disabled]="responseDisabled"
             (valueChange)="form.patchValue({ reponseRecue: $any($event) })"
           ></app-dropdown>
         </div>
         <div class="col-6">
           <label class="form-label">تاريخ الإجابة الواردة</label>
-          <app-date-input [value]="form.controls['dateReponseRecue'].value" (valueChange)="form.patchValue({ dateReponseRecue: $event })"></app-date-input>
+          <app-date-input [value]="form.controls['dateReponseRecue'].value" (valueChange)="form.patchValue({ dateReponseRecue: $event })" [disabled]="responseDisabled"></app-date-input>
         </div>
       </div>
 
@@ -89,13 +99,28 @@
       <div class="row g-2 mb-2">
         <div class="col-6">
           <label class="form-label">تاريخ الرد النهائي</label>
-          <app-date-input [value]="form.controls['dateReponseFinale'].value" (valueChange)="form.patchValue({ dateReponseFinale: $event })"></app-date-input>
+          <app-date-input [value]="form.controls['dateReponseFinale'].value" (valueChange)="form.patchValue({ dateReponseFinale: $event })" [disabled]="responseDisabled"></app-date-input>
         </div>
         <div class="col-6">
           <label class="form-label">جهة الرد النهائي</label>
           <textarea class="form-control form-control-sm" rows="1" formControlName="jihaReponse"></textarea>
         </div>
       </div>
+
+      <div style="border-top: 1px solid #e9ecef; margin: 1rem 0;"></div>
+
+      @if (isEdit) {
+        <div class="mb-2">
+          <label class="form-label">وضعية المراسلة</label>
+          <app-dropdown
+            [options]="['في طور الانجاز', 'منتهية', 'للحفظ']"
+            [value]="form.controls['status'].value"
+            [disabled]="!ctrl.isSecretariat()"
+            [searchable]="false"
+            (valueChange)="form.patchValue({ status: $event })"
+          ></app-dropdown>
+        </div>
+      }
     </div>
   </div>
 

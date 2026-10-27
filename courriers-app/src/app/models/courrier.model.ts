@@ -22,6 +22,7 @@ export interface Courrier {
   reponseFinale: string;
   dateReponseFinale: string;
   jihaReponse: string;
+  status?: string; // وضعية المراسلة
   createdAt?: number;
   createdBy?: string;
   updatedAt?: number;
@@ -42,6 +43,7 @@ export interface CourrierDraft {
   reponseFinale: string;
   dateReponseFinale: string;
   jihaReponse: string;
+  status?: string;
 }
 
 export const ARCHIVE_DESTINATAIRE = 'الأرشيف';
@@ -56,11 +58,12 @@ export function blankCourrierDraft(today: string): CourrierDraft {
     destinataire: '',
     dateReception: today,
     ihalaIla: '',
-    reponseRecue: '' as ReponseRecue, // défaut vide -> affiche « اختر... », choix obligatoire
+    reponseRecue: 'لا' as ReponseRecue, // défaut pour secrétariat (non modifiable)
     dateReponseRecue: '',
     reponseFinale: '',
     dateReponseFinale: '',
     jihaReponse: '',
+    status: 'في طور الانجاز',
   };
 }
 
@@ -79,31 +82,47 @@ export function courrierToDraft(c: Courrier): CourrierDraft {
     reponseFinale: c.reponseFinale,
     dateReponseFinale: c.dateReponseFinale,
     jihaReponse: c.jihaReponse,
+    status: c.status || 'في طور الانجاز',
   };
 }
 
+/**
+ * Portée de validation selon le rôle :
+ * - base     : secrétariat (champs d'identification + réception) ;
+ * - response : interne (champs de réponse) ;
+ * - all      : les deux (compatibilité).
+ */
+export type CourrierValidationScope = 'base' | 'response' | 'all';
+
 /** Validation métier : retourne la liste des erreurs (arabe), vide si OK. */
-export function validateCourrierDraft(d: CourrierDraft): string[] {
+export function validateCourrierDraft(
+  d: CourrierDraft,
+  scope: CourrierValidationScope = 'all',
+): string[] {
   const errors: string[] = [];
-  const required: Array<[string, string]> = [
-    [d.dateArrivee, 'تاريخ الوصول إجباري'],
-    [d.source, 'المصدر إجباري'],
-    [d.typePartie, 'نوع الطرف المعني إجباري'],
-    [d.identitePartie, 'هوية الطرف المعني إجبارية'],
-    [d.objet, 'الموضوع إجباري'],
-    [d.destinataire, 'الموجَّه إليه إجباري'],
-    [d.dateReception, 'تاريخ الاستلام إجباري'],
-  ];
-  for (const [v, msg] of required) {
-    if (!String(v || '').trim()) errors.push(msg);
+  if (scope !== 'response') {
+    const required: Array<[string, string]> = [
+      [d.dateArrivee, 'تاريخ الوصول إجباري'],
+      [d.source, 'المصدر إجباري'],
+      [d.typePartie, 'نوع الطرف المعني إجباري'],
+      [d.identitePartie, 'هوية الطرف المعني إجبارية'],
+      [d.objet, 'الموضوع إجباري'],
+      [d.destinataire, 'الموجَّه إليه إجباري'],
+      [d.dateReception, 'تاريخ الاستلام إجباري'],
+    ];
+    for (const [v, msg] of required) {
+      if (!String(v || '').trim()) errors.push(msg);
+    }
   }
-  if (!d.reponseRecue) {
-    errors.push('يرجى اختيار الإجابة الواردة');
-  } else if (d.reponseRecue !== 'نعم' && d.reponseRecue !== 'لا') {
-    errors.push('قيمة الرد المستلم غير صالحة');
-  }
-  if (d.reponseRecue === 'نعم' && !String(d.dateReponseRecue || '').trim()) {
-    errors.push('يرجى إدخال تاريخ الإجابة الواردة (الإجابة نعم)');
+  if (scope !== 'base') {
+    if (!d.reponseRecue) {
+      errors.push('يرجى اختيار الإجابة الواردة');
+    } else if (d.reponseRecue !== 'نعم' && d.reponseRecue !== 'لا') {
+      errors.push('قيمة الرد المستلم غير صالحة');
+    }
+    if (d.reponseRecue === 'نعم' && !String(d.dateReponseRecue || '').trim()) {
+      errors.push('يرجى إدخال تاريخ الإجابة الواردة (الإجابة نعم)');
+    }
   }
   return errors;
 }

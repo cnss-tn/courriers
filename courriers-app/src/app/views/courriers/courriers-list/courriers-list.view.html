@@ -1,4 +1,4 @@
-<button type="button" (click)="openCreate()" class="btn btn-primary btn-sm users-add-btn add-btn-top">+ إضافة مراسلة</button>
+  <button type="button" (click)="openCreate()" class="btn btn-primary btn-sm users-add-btn add-btn-top" [style.visibility]="ctrl.isSecretariat() ? 'visible' : 'hidden'" [disabled]="!ctrl.isSecretariat()">+ إضافة مراسلة</button>
 <div class="row g-4 composed-bento">
   <div class="col-12 mt-0">
     <div class="card card-custom card-composed courriers-card h-100">
@@ -11,13 +11,14 @@
               <h2 class="h5 fw-bold mb-0 page-main-title">التصرف في المراسلات</h2>
               <div class="programmes-total text-start">
                 @if (!ctrl.loading()) {
-                  {{ ctrl.filtered().length === ctrl.all().length ? `${ctrl.all().length} ${ctrl.all().length > 1 ? 'مراسلات' : 'مراسلة'}` : `${ctrl.filtered().length} / ${ctrl.all().length} مراسلات` }}
+                  {{ ctrl.filtered().length === ctrl.scoped().length ? `${ctrl.scoped().length} ${ctrl.scoped().length > 1 ? 'مراسلات' : 'مراسلة'}` : `${ctrl.filtered().length} / ${ctrl.scoped().length} مراسلات` }}
                 }
               </div>
             </div>
           </div>
         </div>
 
+        @if (auth.currentUser()) {
         <section class="results-filters mt-2" aria-label="Filtres">
           <span #fitProbe class="fit-probe" aria-hidden="true"></span>
           <div class="results-filters-shell">
@@ -48,25 +49,32 @@
                     @if (ctrl.fReponse()) { <button type="button" class="single-clear-x" (click)="ctrl.setFilter({ reponse: '' })" title="مسح">✕</button> }
                   </div>
                 </div>
-                <div class="results-filter-compact results-filter-autofit" [style.width]="filterWidth(ctrl.years())">
+                <div class="results-filter-compact results-filter-autofit" [style.width]="filterWidth(ctrl.years(), false, 85)">
                   <label class="form-label mb-1">السنة</label>
                   <div class="filter-dd-row">
                     <app-dropdown [options]="ctrl.years()" [value]="ctrl.fYear()" placeholder="الكل" [searchable]="false" (valueChange)="ctrl.setFilter({ year: $event })"></app-dropdown>
                     @if (ctrl.fYear()) { <button type="button" class="single-clear-x" (click)="ctrl.setFilter({ year: '' })" title="مسح">✕</button> }
                   </div>
                 </div>
-                <div class="results-filter-compact results-filter-autofit" [style.width]="filterWidth(ctrl.monthLabels)">
+                <div class="results-filter-compact results-filter-autofit" [style.width]="filterWidth(ctrl.monthLabels, false, 85)">
                   <label class="form-label mb-1">شهر تاريخ الوصول</label>
                   <div class="filter-dd-row">
                     <app-dropdown [options]="ctrl.monthLabels" [value]="ctrl.fMonthArrivee()" placeholder="الكل" [searchable]="false" (valueChange)="ctrl.setFilter({ monthArrivee: $event })"></app-dropdown>
                     @if (ctrl.fMonthArrivee()) { <button type="button" class="single-clear-x" (click)="ctrl.setFilter({ monthArrivee: '' })" title="مسح">✕</button> }
                   </div>
                 </div>
-                <div class="results-filter-compact results-filter-autofit" [style.width]="filterWidth(ctrl.monthLabels)">
+                <div class="results-filter-compact results-filter-autofit" [style.width]="filterWidth(ctrl.monthLabels, false, 85)">
                   <label class="form-label mb-1">شهر تاريخ الاستلام</label>
                   <div class="filter-dd-row">
                     <app-dropdown [options]="ctrl.monthLabels" [value]="ctrl.fMonthReception()" placeholder="الكل" [searchable]="false" (valueChange)="ctrl.setFilter({ monthReception: $event })"></app-dropdown>
                     @if (ctrl.fMonthReception()) { <button type="button" class="single-clear-x" (click)="ctrl.setFilter({ monthReception: '' })" title="مسح">✕</button> }
+                  </div>
+                </div>
+                <div class="results-filter-compact results-filter-autofit" [style.width]="'100px'">
+                  <label class="form-label mb-1">وضعية المراسلة</label>
+                  <div class="filter-dd-row">
+                    <app-dropdown [options]="['في طور الانجاز', 'منتهية', 'للحفظ']" [value]="ctrl.fStatus()" placeholder="الكل" [searchable]="false" (valueChange)="ctrl.setFilter({ status: $event })"></app-dropdown>
+                    @if (ctrl.fStatus()) { <button type="button" class="single-clear-x" (click)="ctrl.setFilter({ status: '' })" title="مسح">✕</button> }
                   </div>
                 </div>
                 <div class="results-filter-actions">
@@ -83,7 +91,7 @@
           </div>
         </section>
 
-        <div class="table-responsive composed-table-wrap flex-grow-1 courriers-scroll">
+        <div #tableScroll class="table-responsive composed-table-wrap flex-grow-1 courriers-scroll" [class.at-end]="tableAtEnd()" (scroll)="onTableScroll($event)">
           @if (ctrl.listsError()) {
             <div class="text-center small text-muted py-1">⚠ {{ ctrl.listsError() }}</div>
           }
@@ -98,15 +106,15 @@
                   @for (col of ctrl.sortColumns; track col.key) {
                     <th class="sort-trigger" (click)="ctrl.toggleSort(col.key)">{{ col.label }} <span class="sort-indicator">{{ ctrl.sortIcon(col.key) }}</span></th>
                   }
-                  <th>إجراءات</th>
+                  <th class="action-cell">إجراءات</th>
                 </tr>
               </thead>
               <tbody>
                 @if (!ctrl.slice().length) {
-                  <tr><td colspan="15" class="text-center text-muted">قائمة فارغة</td></tr>
+                  <tr><td colspan="16" class="text-center text-muted">قائمة فارغة</td></tr>
                 }
                 @for (c of ctrl.slice(); track c.id) {
-                  <tr class="courrier-row" (click)="details.set(c)" tabindex="0">
+                  <tr class="courrier-row" [attr.data-id]="c.id">
                     <td class="seq-cell" dir="ltr">{{ fmtSeq(c.seq) }}</td>
                     <td dir="ltr" class="text-nowrap"><small>{{ c.dateArrivee }}</small></td>
                     <td>{{ c.source }}</td>
@@ -119,17 +127,25 @@
                     <td dir="ltr" class="text-nowrap"><small>{{ c.dateReception }}</small></td>
                     <td>@if (c.ihalaIla) { {{ c.ihalaIla }} } @else { <span class="empty-dash">-</span> }</td>
                     <td>
-                      <span class="badge" [class.badge-yes]="c.reponseRecue === 'نعم'" [class.badge-no]="c.reponseRecue !== 'نعم'">{{ c.reponseRecue }}</span>
+                      @if (c.reponseRecue) {
+                        <span class="badge" [class.badge-yes]="c.reponseRecue === 'نعم'" [class.badge-no]="c.reponseRecue !== 'نعم'">{{ c.reponseRecue }}</span>
+                      } @else {
+                        <span class="empty-dash">-</span>
+                      }
                     </td>
                     <td dir="ltr" class="text-nowrap">@if (c.dateReponseRecue) { <small>{{ c.dateReponseRecue }}</small> } @else { <span class="empty-dash">-</span> }</td>
                     <td class="text-truncate-cell text-truncate-cell--wide">@if (c.reponseFinale) { {{ c.reponseFinale }} } @else { <span class="empty-dash">-</span> }</td>
                     <td dir="ltr" class="text-nowrap">@if (c.dateReponseFinale) { <small>{{ c.dateReponseFinale }}</small> } @else { <span class="empty-dash">-</span> }</td>
                     <td>@if (c.jihaReponse) { {{ c.jihaReponse }} } @else { <span class="empty-dash">-</span> }</td>
-                    <td (click)="$event.stopPropagation()">
+                    <td>@if (c.status) {
+                        <span class="badge" [class.badge-blue]="c.status === 'في طور الانجاز'" [class.badge-green]="c.status === 'منتهية'" [class.badge-orange]="c.status === 'للحفظ'">{{ c.status }}</span>
+                      } @else { <span class="empty-dash">-</span> }</td>
+                    <td class="action-cell" (click)="$event.stopPropagation()">
                       <div class="row-actions">
-                        <button type="button" class="user-action-btn user-action-view" (click)="details.set(c)">عرض</button>
-                        <button type="button" class="user-action-btn user-action-edit" (click)="openEdit(c)">تعديل</button>
+                      <button type="button" class="user-action-btn user-action-edit" (click)="openEdit(c)">تعديل</button>
+                      @if (ctrl.isSecretariat()) {
                         <button type="button" class="user-action-btn user-action-delete" (click)="remove(c)">حذف</button>
+                      }
                       </div>
                     </td>
                   </tr>
@@ -142,22 +158,24 @@
         <app-pagination
           [page]="ctrl.page()"
           [totalPages]="ctrl.totalPages()"
-          [total]="ctrl.all().length"
+          [total]="ctrl.scoped().length"
           [filtered]="ctrl.filtered().length"
           [pageSize]="ctrl.pageSize"
           unit="مراسلة"
           unitPlural="مراسلات"
           (pageChange)="ctrl.goTo($event)"
         ></app-pagination>
+        }
       </div>
     </div>
   </div>
 </div>
 
 @if (showForm()) {
-  <app-popup [title]="editing() ? 'تعديل المراسلة' : 'مراسلة جديدة'" [medium]="true" (closed)="showForm.set(false)">
+  <app-popup [title]="editing() ? 'تعديل المراسلة' : 'مراسلة جديدة'" [wide]="true" (closed)="showForm.set(false)">
     <app-courrier-form
       [courrier]="editing()"
+      [restoreDraft]="restoreDraft()"
       [serverError]="saveError()"
       (submitted)="onSubmitted($event)"
       (cancelled)="showForm.set(false)"
@@ -165,15 +183,3 @@
   </app-popup>
 }
 
-@if (details()) {
-  <app-popup title="معطيات المراسلة" (closed)="details.set(null)">
-    <div class="details-wrap">
-    <app-courrier-details [courrier]="details()!"></app-courrier-details>
-    <div class="popup-actions">
-      <button type="button" class="btn btn-outline-secondary btn-sm" (click)="details.set(null)">إغلاق</button>
-      <button type="button" class="btn btn-primary btn-sm" (click)="openEdit(details()!); details.set(null)">تعديل</button>
-      <button type="button" class="btn btn-outline-danger btn-sm" (click)="removeDetails()">حذف</button>
-    </div>
-    </div>
-  </app-popup>
-}

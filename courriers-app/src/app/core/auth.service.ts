@@ -14,7 +14,7 @@ import {
 import { passwordHash, passwordMatches } from './crypto';
 import { FirebaseService } from './firebase.service';
 import { computeSessionExpiry } from './session-policy';
-import { AppUser } from '../models/user.model';
+import { AppUser, UserType } from '../models/user.model';
 
 const LS_KEY = 'currentUser';
 const COL_USERS = 'users';
@@ -24,6 +24,11 @@ const COL_SESSIONS = 'sessions';
 function sessionDocId(matricule: string, frName: string): string {
   const safe = (s: string) => String(s || '').trim().replace(/\//g, '-');
   return `${safe(matricule)}-${safe(frName)}`;
+}
+
+/** Rôle stocké (`Type`) : « secretariat » sinon « internal » (moindre privilège). */
+function toUserType(v: unknown): UserType {
+  return String(v ?? '').trim().toLowerCase() === 'secretariat' ? 'secretariat' : 'internal';
 }
 
 /** ms depuis un Firestore Timestamp, un number, ou NaN. */
@@ -53,6 +58,8 @@ export class AuthService {
 
   constructor(private fb: FirebaseService) {
     this.armTimer();
+    // Rafraîchit le rôle depuis Firestore (sessions locales créées avant `Type`).
+    void this.refreshType();
     this.watchdog = setInterval(() => this.checkNow(), 60 * 1000);
     window.addEventListener('focus', () => this.checkNow());
     document.addEventListener('visibilitychange', () => {
@@ -72,9 +79,28 @@ export class AuthService {
       const raw = localStorage.getItem(LS_KEY);
       if (!raw) return null;
       const u = JSON.parse(raw);
-      return u && typeof u === 'object' ? (u as AppUser) : null;
+      if (!u || typeof u !== 'object') return null;
+      u.type = toUserType(u.type);
+      return u as AppUser;
     } catch {
       return null;
+    }
+  }
+
+  /** Met à jour le rôle local depuis `users.Type` (best-effort, jamais bloquant). */
+  private async refreshType(): Promise<void> {
+    const u = this._user();
+    if (!u?.matricule) return;
+    try {
+      const found = await this.findUserDoc(u.matricule);
+      if (!found) return;
+      const type = toUserType(found.data['Type'] ?? found.data['type']);
+      if (type === u.type) return;
+      const next: AppUser = { ...u, type };
+      localStorage.setItem(LS_KEY, JSON.stringify(next));
+      this._user.set(next);
+    } catch {
+      /* hors-ligne : on conserve le rôle stocké */
     }
   }
 
@@ -219,6 +245,7 @@ export class AuthService {
       matricule: String(d['Matricule'] ?? mat),
       frName: String(d['FR_Name'] ?? ''),
       arName: String(d['AR_Name'] ?? ''),
+      type: toUserType(d['Type'] ?? d['type']),
     };
 
     // Une seule session live par user : supprime tout doc résiduel de ce
@@ -293,9 +320,9 @@ export class AuthService {
     const go = () => {
       if (!window.location.pathname.endsWith('/login')) window.location.href = 'login';
     };
-    // Attendre la suppression serveur (max 2,5 s) AVANT de naviguer :
-    // la navigation annule les requêtes Firestore encore en cours.
-    void Promise.race([cleanup, new Promise((r) => setTimeout(r, 2500))]).then(go, go);
+    // Navigation immédiate ; nettoyage serveur en arrière-plan (best-effort)
+    go();
+    void Promise.race([cleanup, new Promise((r) => setTimeout(r, 300))]).catch(() => undefined);
   }
 
   /** Supprime le doc session (id actuel `matricule-frName` + legacy par token). Ne jette jamais. */

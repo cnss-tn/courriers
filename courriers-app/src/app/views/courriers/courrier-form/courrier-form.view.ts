@@ -24,6 +24,8 @@ import { AutogrowDirective } from '../../../shared/directives/autogrow.directive
 })
 export class CourrierFormView implements OnInit, OnChanges {
   @Input() courrier: Courrier | null = null;
+  /** Brouillon à restaurer après un échec d'enregistrement (ne rien perdre). */
+  @Input() restoreDraft: CourrierDraft | null = null;
   @Input() serverError = '';
   @Output() submitted = new EventEmitter<CourrierDraft>();
   @Output() cancelled = new EventEmitter<void>();
@@ -42,9 +44,23 @@ export class CourrierFormView implements OnInit, OnChanges {
     return !!this.courrier?.id;
   }
 
+  /** Champs d'identification/réception figés pour un utilisateur interne. */
+  get baseDisabled(): boolean {
+    return this.ctrl.isInternal();
+  }
+
+  /** Champs de réponse figés pour le secrétariat. */
+  get responseDisabled(): boolean {
+    return this.ctrl.isSecretariat();
+  }
+
   ngOnInit(): void {
     const today = new Date().toISOString().slice(0, 10);
-    const d = this.courrier ? courrierToDraft(this.courrier) : blankCourrierDraft(today);
+    const d = this.restoreDraft
+      ? { ...this.restoreDraft }
+      : this.courrier
+        ? courrierToDraft(this.courrier)
+        : blankCourrierDraft(today);
     this.form = this.fb.group({
       dateArrivee: [d.dateArrivee],
       source: [d.source],
@@ -59,12 +75,21 @@ export class CourrierFormView implements OnInit, OnChanges {
       reponseFinale: [d.reponseFinale],
       dateReponseFinale: [d.dateReponseFinale],
       jihaReponse: [d.jihaReponse],
+      status: [d.status || 'في طور الانجاز'],
     });
+    // Verrouille les champs hors périmètre du rôle (valeurs conservées via getRawValue).
+    const locked = this.baseDisabled
+      ? ['dateArrivee', 'source', 'typePartie', 'identitePartie', 'objet', 'destinataire', 'dateReception', 'ihalaIla']
+      : ['reponseRecue', 'dateReponseRecue', 'reponseFinale', 'dateReponseFinale', 'jihaReponse'];
+    for (const key of locked) this.form.get(key)?.disable({ emitEvent: false });
     void this.ctrl.loadFormLists();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['serverError']?.currentValue) this.scrollToAlert();
+    if (changes['serverError']?.currentValue) {
+      this.saving.set(false); // réactive le bouton (le popup reste ouvert sur erreur)
+      this.scrollToAlert();
+    }
   }
 
   /** Fait défiler le popup jusqu'au message d'alerte dès son apparition. */
@@ -83,8 +108,8 @@ export class CourrierFormView implements OnInit, OnChanges {
   }
 
   submit(): void {
-    const draft = this.form.value as CourrierDraft;
-    const errors = validateCourrierDraft(draft); // validation = MODEL
+    const draft = this.form.getRawValue() as CourrierDraft;
+    const errors = validateCourrierDraft(draft, this.ctrl.fieldScope()); // validation = MODEL
     if (errors.length) {
       this.clientError.set(errors[0]);
       this.scrollToAlert();

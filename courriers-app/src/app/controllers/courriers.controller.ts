@@ -8,9 +8,11 @@ import {
   ARCHIVE_DESTINATAIRE,
   Courrier,
   CourrierDraft,
+  CourrierValidationScope,
   formatSeq,
   validateCourrierDraft,
 } from '../models/courrier.model';
+import { UserType } from '../models/user.model';
 
 // CONTROLLER — seul endroit autorisé à orchestrer les données des courriers.
 // Les vues se contentent de lire ces signals et d'appeler ces méthodes.
@@ -19,7 +21,7 @@ import {
 type CourrierSortKey =
   | 'seq' | 'dateArrivee' | 'source' | 'typePartie' | 'identitePartie'
   | 'objet' | 'destinataire' | 'dateReception' | 'ihalaIla' | 'reponseRecue'
-  | 'dateReponseRecue' | 'reponseFinale' | 'dateReponseFinale' | 'jihaReponse';
+  | 'dateReponseRecue' | 'reponseFinale' | 'dateReponseFinale' | 'jihaReponse' | 'status';
 
 const SORT_GETTERS: Record<CourrierSortKey, (c: Courrier) => string | number> = {
   seq: (c) => c.seq,
@@ -36,6 +38,7 @@ const SORT_GETTERS: Record<CourrierSortKey, (c: Courrier) => string | number> = 
   reponseFinale: (c) => c.reponseFinale || '',
   dateReponseFinale: (c) => c.dateReponseFinale || '',
   jihaReponse: (c) => c.jihaReponse || '',
+  status: (c) => c.status || '',
 };
 
 /** Mois (noms tunisiens) pour les filtres شهر تاريخ الوصول / شهر تاريخ الاستلام. */
@@ -66,16 +69,28 @@ export class CourriersController {
   private recipients = inject(RecipientsService);
   private auth = inject(AuthService);
 
-  readonly pageSize = 6;
+  readonly pageSize = 5;
+
+  // --- rôle (secrétariat = saisie, interne = traitement des réponses) ---
+  readonly role = computed<UserType>(() => this.auth.currentUser()?.type ?? 'internal');
+  readonly isSecretariat = computed(() => this.role() === 'secretariat');
+  readonly isInternal = computed(() => this.role() === 'internal');
+  /** Champs validés / modifiables selon le rôle. */
+  readonly fieldScope = computed<CourrierValidationScope>(() =>
+    this.isInternal() ? 'response' : 'base',
+  );
 
   // --- état ---
   readonly all = signal<Courrier[]>([]);
   readonly loading = signal(true);
   readonly error = signal('');
+  /** Id du dernier courrier créé/modifié (pour naviguer vers sa page). */
+  readonly lastSavedId = signal<string | null>(null);
   /** Échec non bloquant des listes déroulantes (n'empêche pas l'affichage du tableau). */
   readonly listsError = signal('');
 
   // --- filtres (UI state piloté par le contrôleur) ---
+  readonly fStatus = signal<string>('');
   readonly fSearch = signal('');
   readonly fSource = signal('');
   readonly fDestinataire = signal('');
@@ -103,6 +118,7 @@ export class CourriersController {
     { key: 'reponseFinale', label: 'الرد النهائي' },
     { key: 'dateReponseFinale', label: 'تاريخ الرد النهائي' },
     { key: 'jihaReponse', label: 'جهة الرد النهائي' },
+    { key: 'status', label: 'وضعية المراسلة' },
   ];
   /** Libellés des mois pour les dropdowns des filtres. */
   readonly monthLabels = MONTHS.map((m) => m.label);
@@ -116,9 +132,27 @@ export class CourriersController {
   readonly destinataireOptions = signal<string[]>([]);
 
   // --- dérivés ---
+  /** Vrai si le courrier est adressé à l'utilisateur connecté (matricule en tête). */
+  private isAddressedToMe(c: Courrier): boolean {
+    const u = this.auth.currentUser();
+    const mat = String(u?.matricule ?? '').trim();
+    if (!mat) return false;
+    const dest = String(c.destinataire || '').trim();
+    const first = dest.split(/\s+/)[0];
+    if (first === mat) return true;
+    // Repli : doc sans matricule, nom arabe seul.
+    const ar = String(u?.arName || '').trim();
+    return !!ar && dest === ar;
+  }
+
+  /** Périmètre visible : un interne ne voit que les courriers qui lui sont adressés. */
+  readonly scoped = computed(() =>
+    this.isInternal() ? this.all().filter((c) => this.isAddressedToMe(c)) : this.all(),
+  );
+
   readonly filtered = computed(() => {
     const q = this.fSearch().trim().toLowerCase();
-    return this.all().filter((c) => {
+    return this.scoped().filter((c) => {
       if (
         q &&
         // بحث في : الرقم / هوية الطرف المعني / الموضوع / الرد النهائي / جهة الرد النهائي
@@ -132,6 +166,7 @@ export class CourriersController {
       if (this.fReponse() && c.reponseRecue !== this.fReponse()) return false;
       if (this.fYear() && (c.dateArrivee || '').slice(0, 4) !== this.fYear()) return false;
       if (this.fMonthArrivee() && (c.dateArrivee || '').slice(5, 7) !== monthNum(this.fMonthArrivee())) return false;
+      if (this.fStatus() && c.status !== this.fStatus()) return false;
       if (this.fMonthReception() && (c.dateReception || '').slice(5, 7) !== monthNum(this.fMonthReception())) return false;
       return true;
     });
@@ -176,27 +211,33 @@ export class CourriersController {
   }
 
   readonly years = computed(() =>
-    [...new Set(this.all().map((c) => (c.dateArrivee || '').slice(0, 4)).filter(Boolean))]
+    [...new Set(this.scoped().map((c) => (c.dateArrivee || '').slice(0, 4)).filter(Boolean))]
       .sort()
       .reverse(),
   );
 
   // --- chargement ---
-  async reload(): Promise<void> {
-    this.loading.set(true);
+  /**
+   * Recharge la liste. `silent` : pas d'écran de chargement (rafraîchissement
+   * après une sauvegarde) — le tableau reste affiché et se met à jour ensuite.
+   */
+  async reload(silent = false): Promise<void> {
+    if (!silent) this.loading.set(true);
     this.error.set('');
     try {
       this.all.set(await this.courriers.list());
       // Une suppression peut faire disparaître la page courante : la replier si besoin.
       if (this.page() > this.totalPages()) this.page.set(this.totalPages());
     } catch {
-      this.error.set(
-        typeof navigator !== 'undefined' && navigator.onLine === false
-          ? 'لا يوجد اتصال بالإنترنت'
-          : 'تعذر تحميل المراسلات',
-      );
+      if (!silent) {
+        this.error.set(
+          typeof navigator !== 'undefined' && navigator.onLine === false
+            ? 'لا يوجد اتصال بالإنترنت'
+            : 'تعذر تحميل المراسلات',
+        );
+      }
     } finally {
-      this.loading.set(false);
+      if (!silent) this.loading.set(false);
     }
   }
 
@@ -232,6 +273,7 @@ export class CourriersController {
     year?: string;
     monthArrivee?: string;
     monthReception?: string;
+    status?: string;
   }): void {
     if (patch.search !== undefined) this.fSearch.set(patch.search);
     if (patch.source !== undefined) this.fSource.set(patch.source);
@@ -240,6 +282,7 @@ export class CourriersController {
     if (patch.year !== undefined) this.fYear.set(patch.year);
     if (patch.monthArrivee !== undefined) this.fMonthArrivee.set(patch.monthArrivee);
     if (patch.monthReception !== undefined) this.fMonthReception.set(patch.monthReception);
+    if (patch.status !== undefined) this.fStatus.set(patch.status);
     this.page.set(1);
   }
 
@@ -251,7 +294,8 @@ export class CourriersController {
     this.fYear.set('');
     this.fMonthArrivee.set('');
     this.fMonthReception.set('');
-    this.page.set(1);
+    this.fStatus.set('');
+    // page stays on current page (user request)
   }
 
   goTo(p: number): void {
@@ -268,33 +312,49 @@ export class CourriersController {
    * @returns message d'erreur (arabe) ou null si succès.
    */
   async save(draft: CourrierDraft, editingId: string | null): Promise<string | null> {
-    const errors = validateCourrierDraft(draft);
+    if (!editingId && !this.isSecretariat()) return 'غير مصرح بإضافة المراسلات';
+    if (this.isInternal() && editingId) {
+      const target = this.all().find((c) => c.id === editingId);
+      if (target && !this.isAddressedToMe(target)) return 'غير مصرح بتعديل هذه المراسلة';
+    }
+    const errors = validateCourrierDraft(draft, this.fieldScope());
     if (errors.length) return errors[0];
+    const base = {
+      dateArrivee: draft.dateArrivee,
+      source: draft.source.trim(),
+      typePartie: draft.typePartie.trim(),
+      identitePartie: draft.identitePartie.trim(),
+      objet: draft.objet.trim(),
+      destinataire: draft.destinataire.trim(),
+      dateReception: draft.dateReception,
+      ihalaIla: (draft.ihalaIla || '').trim(),
+    };
+    const response = {
+      reponseRecue: draft.reponseRecue,
+      dateReponseRecue: draft.dateReponseRecue || '',
+      reponseFinale: (draft.reponseFinale || '').trim(),
+      dateReponseFinale: draft.dateReponseFinale || '',
+      jihaReponse: (draft.jihaReponse || '').trim(),
+      status: draft.status || 'في طور الانجاز',
+    };
+    const status = draft.status || 'في طور الانجاز';
+    const baseWithStatus = { ...base, status };
     try {
-      const payload = {
-        dateArrivee: draft.dateArrivee,
-        source: draft.source.trim(),
-        typePartie: draft.typePartie.trim(),
-        identitePartie: draft.identitePartie.trim(),
-        objet: draft.objet.trim(),
-        destinataire: draft.destinataire.trim(),
-        dateReception: draft.dateReception,
-        ihalaIla: (draft.ihalaIla || '').trim(),
-        reponseRecue: draft.reponseRecue,
-        dateReponseRecue: draft.dateReponseRecue || '',
-        reponseFinale: (draft.reponseFinale || '').trim(),
-        dateReponseFinale: draft.dateReponseFinale || '',
-        jihaReponse: (draft.jihaReponse || '').trim(),
-      };
       if (editingId) {
-        await this.courriers.update(editingId, payload);
+        const patch = this.isInternal() ? { ...response, status } : baseWithStatus;
+        await this.courriers.update(editingId, patch);
+        this.lastSavedId.set(editingId);
       } else {
-        await this.courriers.create({
-          ...payload,
+        const created = await this.courriers.create({
+          ...baseWithStatus,
+          ...response,
           createdBy: this.auth.currentUser()?.matricule || '',
         });
+        this.lastSavedId.set(created.id ?? null);
       }
-      await this.reload();
+      // Attendu par la vue : la liste est à jour quand save() résout, ce qui
+      // permet de naviguer vers la page contenant le courrier enregistré.
+      await this.reload(true);
       return null;
     } catch {
       return 'خطأ أثناء التسجيل — حاول مجدداً';
@@ -302,10 +362,11 @@ export class CourriersController {
   }
 
   async remove(c: Courrier): Promise<string | null> {
+    if (!this.isSecretariat()) return 'غير مصرح بحذف المراسلات';
     if (!c.id) return 'معرف غير صالح';
     try {
       await this.courriers.remove(c.id);
-      await this.reload();
+      await this.reload(true);
       // Après suppression : réinitialise les filtres pour afficher les courriers restants.
       this.resetFilters();
       return null;
@@ -323,7 +384,7 @@ export class CourriersController {
     return this.sorted().map((c) => [
       formatSeq(c.seq), c.dateArrivee, c.source, c.typePartie, c.identitePartie, c.objet,
       c.destinataire, c.dateReception, c.ihalaIla, c.reponseRecue, c.dateReponseRecue,
-      c.reponseFinale, c.dateReponseFinale, c.jihaReponse,
+      c.reponseFinale, c.dateReponseFinale, c.jihaReponse, c.status || '',
     ]);
   }
 }

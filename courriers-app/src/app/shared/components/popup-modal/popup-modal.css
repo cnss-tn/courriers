@@ -7,7 +7,7 @@
 }
 .app-modal-dialog { width: 100%; max-width: 560px; max-height: 95vh; display: flex; }
 .app-modal-dialog--medium { max-width: 60em; }
-.app-modal-dialog--wide { max-width: 900px; }
+.app-modal-dialog--wide { max-width: 75em; }
 .app-modal-content {
   width: 100%; max-height: 95vh;
   display: flex; flex-direction: column;

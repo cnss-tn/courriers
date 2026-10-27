@@ -51,7 +51,7 @@ le modèle valide.** Détails pédagogiques : voir `docs/MVC.md`.
 
 | Collection     | Contenu |
 | -------------- | ------- |
-| `users`        | Matricule, FR_Name, AR_Name, Pw (sha256) — login uniquement, rien d'autre |
+| `users`        | Matricule, FR_Name, AR_Name, Pw (sha256), Type (`secretariat` / `internal`) — login + rôle |
 | `recipients`   | id `Matricule-FR_Name`, champs { Matricule, FR_Name, AR_Name } (الموجَّه إليه, lecture seule) |
 | `sessions`     | id `matricule-frName` -> { matricule, createdAt, expiresAt } (heures lisibles Timestamp, 1 session live / user, expire à 19h00 ; docs expirés supprimés au logout, à l'expiration et au démarrage/login) |
 | `courriers`    | seq, dateArrivee, source, typePartie, identitePartie, objet, destinataire, dateReception, ihalaIla, reponseRecue, dateReponseRecue, reponseFinale, dateReponseFinale, jihaReponse, createdAt/By, updatedAt |
@@ -64,6 +64,7 @@ le modèle valide.** Détails pédagogiques : voir `docs/MVC.md`.
 - **Destinataire** = tous les users (« matricule + nom arabe », ex. 126359 أحمد الزكراوي) + **« الأرشيف » toujours en dernier**.
 - **المصدر / إحالة إلى** : bureaux/directions de la table `sources` ; **نوع الطرف** : table `relevant_part_type` ; **« + جديد »** partout : valeur libre utilisée telle quelle, jamais persistée.
 - Si **« الإجابة الواردة = نعم »** alors تاريخ الإجابة الواردة requis.
+- **Rôles (`users.Type`)** : `secretariat` = ajout / modification / suppression + champs d'identification et de réception ; `internal` = pas d'ajout, ne voit que les courriers qui lui sont adressés (matricule en tête de الموجَّه إليه) et ne modifie que les champs de réponse.
 
 ## 7) Déploiement GitHub Pages
 
