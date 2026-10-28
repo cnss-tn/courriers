@@ -107,6 +107,17 @@ export class CourrierFormView implements OnInit, OnChanges {
     else this.form.patchValue({ ihalaIla: saved });
   }
 
+  /**
+   * الإجابة الواردة : si «لا», aucune date de réponse ne peut exister.
+   * La date est vidée (placeholder اختر...) et le reste même si l'on repasse
+   * à «نعم» : l'utilisateur doit saisir la vraie date.
+   */
+  onReponseRecueChange(value: unknown): void {
+    const v = String(value ?? '');
+    this.form.patchValue({ reponseRecue: v });
+    if (v !== 'نعم') this.form.patchValue({ dateReponseRecue: '' });
+  }
+
   submit(): void {
     const draft = this.form.getRawValue() as CourrierDraft;
     const errors = validateCourrierDraft(draft, this.ctrl.fieldScope()); // validation = MODEL

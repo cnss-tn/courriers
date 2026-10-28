@@ -331,7 +331,8 @@ export class CourriersController {
     };
     const response = {
       reponseRecue: draft.reponseRecue,
-      dateReponseRecue: draft.dateReponseRecue || '',
+      // «لا» => jamais de date de réponse (même si un ancien brouillon en avait une).
+      dateReponseRecue: draft.reponseRecue === 'نعم' ? draft.dateReponseRecue || '' : '',
       reponseFinale: (draft.reponseFinale || '').trim(),
       dateReponseFinale: draft.dateReponseFinale || '',
       jihaReponse: (draft.jihaReponse || '').trim(),

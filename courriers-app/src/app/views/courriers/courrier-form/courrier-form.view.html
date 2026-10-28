@@ -82,7 +82,7 @@
             [value]="form.controls['reponseRecue'].value"
             [searchable]="false"
             [disabled]="responseDisabled"
-            (valueChange)="form.patchValue({ reponseRecue: $any($event) })"
+            (valueChange)="onReponseRecueChange($event)"
           ></app-dropdown>
         </div>
         <div class="col-6">
